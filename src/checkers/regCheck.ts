@@ -6,12 +6,12 @@ const regexpMap = {
   'pattern$': 'filepath'
 } as RegExpMap
 
-let regexps: RegExp[] = []
+let regexps: Array<RegExp> = []
 let substitutions: string[] = []
 
 // prebuild regexps
 Object.keys(regexpMap).forEach( key => {
-  regexps.push[new RegExp(key)]
+  regexps.push(new RegExp(key))
   substitutions.push(regexpMap[key])
 })
 
