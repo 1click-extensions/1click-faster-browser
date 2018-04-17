@@ -19,4 +19,4 @@ export const block = (tabId: number, parsedURL: ParsedURL): BlockingResponse => 
   return { cancel: true }
 }
 
-export const ALLOW_REQUEST_TOKEN = { cancel: true } as BlockingResponse
+export const ALLOW_REQUEST_TOKEN = { cancel: false } as BlockingResponse

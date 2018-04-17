@@ -11,7 +11,6 @@ var stats = {
 if (localStorage.getItem(STORAGE_KEY)) {
     stats = JSON.parse(localStorage.getItem(STORAGE_KEY));
 }
-console.log('Stats:', stats);
 var hasLib = function (entry, lib) {
     return entry.libs.indexOf(lib) > -1;
 };

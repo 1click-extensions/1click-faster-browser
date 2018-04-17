@@ -38,8 +38,6 @@ if (localStorage.getItem(STORAGE_KEY)) {
   stats = JSON.parse(localStorage.getItem(STORAGE_KEY))
 }
 
-console.log('Stats:', stats)
-
 const hasLib = (entry: StatEntry, lib: string) =>
   entry.libs.indexOf(lib) > -1
 

@@ -15,4 +15,4 @@ exports.block = function (tabId, parsedURL) {
     logAction(tabId, parsedURL);
     return { cancel: true };
 };
-exports.ALLOW_REQUEST_TOKEN = { cancel: true };
+exports.ALLOW_REQUEST_TOKEN = { cancel: false };
