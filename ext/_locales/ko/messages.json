@@ -1,0 +1,6 @@
+{
+  "browser_action": {"message": "Share picture from webcam" },
+  "ext_desc": {"message": "Create picture from webcam and share it in one click" },
+  "ext_name": {"message": "1click Share Webcam Picture" }
+}
+

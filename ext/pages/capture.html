@@ -1,0 +1,25 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Capture</title>
+        <style >
+        .main{
+			text-align: center;
+			padding-top: 20px;
+		}
+		</style>
+    </head>
+    <body>
+		<div class="main">
+			<video id="vid" height="240" width="360" muted="muted" autoplay></video><br>
+			<button type="button" id="capture">Save image</button><br>
+			<div id="topText"></div>
+			<br>
+			<canvas id="canvas" height="240"  width="360"></canvas>
+	        <script src="/lib/jquery.js"></script>
+	        <script src="/js/webcam.js"></script>
+	    </div>
+    </body>
+</html>

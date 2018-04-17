@@ -1,5 +1,5 @@
-import { ParsedURL, RegExpMap } from '../domain'
-import { redirect, ALLOW_REQUEST_TOKEN } from '../requestInterceptor'
+import { ParsedURL, RegExpMap } from '../misc/domain'
+import { redirect, ALLOW_REQUEST_TOKEN } from '../misc/requestInterceptor'
 
 // todo import real filters
 const regexpMap = {

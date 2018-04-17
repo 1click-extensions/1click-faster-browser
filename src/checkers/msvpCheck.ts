@@ -1,5 +1,5 @@
-import { ParsedURL, ResourceMap } from '../domain'
-import { block, ALLOW_REQUEST_TOKEN} from '../requestInterceptor'
+import { ParsedURL, ResourceMap } from '../misc/domain'
+import { block, ALLOW_REQUEST_TOKEN} from '../misc/requestInterceptor'
 
 // todo import real filters
 const blockList = {

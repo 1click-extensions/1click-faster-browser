@@ -1,6 +1,6 @@
-import { ParsedURL, ResourceMap } from '../domain'
-import { ALLOW_REQUEST_TOKEN } from "../requestInterceptor"
-import { redirect } from '../requestInterceptor'
+import { ParsedURL, ResourceMap } from '../misc/domain'
+import { ALLOW_REQUEST_TOKEN } from "../misc/requestInterceptor"
+import { redirect } from '../misc/requestInterceptor'
 
 // todo generate proper filter
 const resourceMap: ResourceMap = {

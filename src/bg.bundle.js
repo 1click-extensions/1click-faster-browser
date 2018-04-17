@@ -1,4 +1,300 @@
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
 "use strict";
+
+var helpers_1 = __webpack_require__(1);
+var stats_1 = __webpack_require__(7);
+var logAction = function (tabId, parsedURL) {
+    return stats_1.addBoost(tabId, parsedURL);
+};
+// redirect page resource to webboost resource
+exports.redirect = function (url, tabId, parsedURL) {
+    logAction(tabId, parsedURL);
+    return { redirectUrl: helpers_1.js(url) };
+};
+// used for msvp blocking
+// no resource will be loaded
+exports.block = function (tabId, parsedURL) {
+    logAction(tabId, parsedURL);
+    return { cancel: true };
+};
+exports.ALLOW_REQUEST_TOKEN = { cancel: false };
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var url_1 = __webpack_require__(3);
+exports.js = function (filename) {
+    return chrome.extension.getURL(['/injectees/', filename].join(''));
+};
+exports.random = function (min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+exports.$id = function (id) {
+    return document.getElementById(id);
+};
+exports.not = function (fn) {
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        return !fn.apply(void 0, args);
+    };
+};
+exports.getUriFromTab = function (tab) {
+    return url_1.parseURL(tab.url.replace(/#.*$/, '')).host;
+};
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+exports.VERSION_TAG = /\$version\$/;
+exports.NAME_TAG = /\$name\$/;
+exports.URL_QUERY_TAG = /\?.+$/;
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var configSyntax_1 = __webpack_require__(2);
+var last = function (arr) { return arr[arr.length - 1]; };
+exports.parseURL = function (url) {
+    var splitted = url.split('://');
+    var schema = splitted[0], path = splitted[1];
+    var result = {
+        schema: schema,
+        uri: path.replace(configSyntax_1.URL_QUERY_TAG, ''),
+        isExtension: false,
+        host: '',
+        library: ''
+    };
+    result.isExtension = result.schema === 'chrome-extension';
+    var parsedLibrary = result.uri.split('/');
+    var host = parsedLibrary[0];
+    result.host = host;
+    result.library = last(parsedLibrary);
+    return result;
+};
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var hash_check_1 = __webpack_require__(5);
+var reg_check_1 = __webpack_require__(8);
+var msvpCheck_1 = __webpack_require__(10);
+var requestInterceptor_1 = __webpack_require__(0);
+var url_1 = __webpack_require__(3);
+var state_1 = __webpack_require__(11);
+var checkers = [hash_check_1.check, reg_check_1.regCheck, msvpCheck_1.check];
+// webpage-specific settings are stored in this object
+var state = state_1.load();
+// need to maintain listeners, because all already opened tabs will not be boosted otherwise...
+// furthermore, all tabs with changed URLs will not be boosted...
+var tabListeners = {};
+// set listener for each created/reloaded tab
+// this is needed because tabId and website URL will not be available otherwise inside the listener
+chrome.tabs.onUpdated.addListener(function (tabId, change, tab) {
+    // sync state on each refresh/creation to have less syncing penalty
+    state = state_1.load();
+    // if the page is reloaded and the URL is changed or it is a first installation of the extension...
+    // tab object is IMMUTABLE, surprise surprise!
+    // So, we need to add new listeners for a tab with a new URL...
+    if (change.status === 'loading' && (change.url || !tabListeners[tabId])) {
+        if (tabListeners[tabId]) {
+            chrome.webRequest.onBeforeRequest.removeListener(tabListeners[tabId]);
+        }
+        tabListeners[tabId] = checkUrl(tab);
+        console.log('tabListeners', tabListeners);
+        return chrome.webRequest.onBeforeRequest.addListener(tabListeners[tabId], {
+            urls: ['http://*/*', 'https://*/*', 'chrome-extension://*/*'],
+            tabId: tab.id
+        }, ["blocking"]);
+    }
+});
+// cleanup all those listeners
+chrome.tabs.onRemoved.addListener(function (tabId, removeObj) {
+    chrome.webRequest.onBeforeRequest.removeListener(tabListeners[tabId]);
+    return tabListeners[tabId] = null;
+});
+// First time impression
+chrome.runtime.onInstalled.addListener(function (details) {
+    if (details.reason === 'install') {
+        return chrome.tabs.create({ url: 'https://www.facebook.com/WebBoostExtension/app/135876083099764/' });
+    }
+});
+var checkUrl = function (tab) {
+    // tab object is immutable
+    // So there is a guarantee that tab.url will be the same in this scope
+    return function (request) {
+        if (request.method !== 'GET') {
+            return requestInterceptor_1.ALLOW_REQUEST_TOKEN;
+        }
+        var normalizedUrl = url_1.parseURL(request.url);
+        // do nothing if boosting was disabled for given website
+        var siteUrl = url_1.parseURL(tab.url);
+        console.log(siteUrl, 'siteUrl');
+        if (__guard__(state.forHost(siteUrl.host), function (x) { return x.disabled; }) === true) {
+            return requestInterceptor_1.ALLOW_REQUEST_TOKEN;
+        }
+        console.log(checkers, 'checkers');
+        for (var _i = 0, checkers_1 = checkers; _i < checkers_1.length; _i++) {
+            var check = checkers_1[_i];
+            var result = check(normalizedUrl, request.tabId);
+            console.log(result, 'result');
+            if ((result != null ? result.redirectUrl : undefined) || (result != null ? result.cancel : undefined)) {
+                console.log(result, 'result');
+                return result;
+            }
+        }
+        console.log(checkers, 'checkers');
+        return requestInterceptor_1.ALLOW_REQUEST_TOKEN;
+    };
+};
+function __guard__(value, transform) {
+    return typeof value !== 'undefined' && value !== null ? transform(value) : undefined;
+}
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var hash_config_1 = __webpack_require__(6);
+var requestInterceptor_1 = __webpack_require__(0);
+var configSyntax_1 = __webpack_require__(2);
+var comparisonHash = {};
+var keys = Object.keys(hash_config_1.versions);
+function check(normalizedUrl, tabId) {
+    if (normalizedUrl.isExtension) {
+        return;
+    }
+    var checkUrl = normalizedUrl.uri;
+    // console.log('hash check', checkUrl)
+    // url totally match the library + version + cdn address
+    console.log('comparisonHash', comparisonHash);
+    if (comparisonHash[checkUrl]) {
+        normalizedUrl.boostedBy = 'hash';
+        return requestInterceptor_1.redirect(comparisonHash[checkUrl], tabId, normalizedUrl);
+    }
+    else {
+        return requestInterceptor_1.ALLOW_REQUEST_TOKEN;
+    }
+}
+exports.check = check;
+;
+// fill in comparison map
+keys.forEach(function (key) {
+    var entry = hash_config_1.versions[key];
+    if (entry.versions) {
+        return entry.versions.forEach(function (version) {
+            entry.urls.forEach(function (url) {
+                var hashUrl = url.replace(configSyntax_1.VERSION_TAG, version);
+                return comparisonHash[hashUrl] =
+                    entry.file.replace(configSyntax_1.NAME_TAG, key).replace(configSyntax_1.VERSION_TAG, version);
+            });
+        });
+    }
+    else {
+        return entry.urls.forEach(function (url) {
+            comparisonHash[url] =
+                entry.file.replace(configSyntax_1.NAME_TAG, key);
+        });
+    }
+});
+console.log('comparison hash in hash-check', comparisonHash);
+
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
 exports.versions = {
     'jquery': {
         versions: [
@@ -2625,3 +2921,315 @@ exports.versions = {
         file: 'google-fonts/We_iSDqttE3etzfdfhuPRWOaRr2aRL0G9SOCibVUDmr3rGVtsTkPsbDajuO5ueQw.woff2'
     }
 };
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var helpers_1 = __webpack_require__(1);
+var STORAGE_KEY = 'stats';
+var stats = {
+    tabStats: {},
+    allStats: {
+        count: 0,
+        libs: {}
+    }
+};
+if (localStorage.getItem(STORAGE_KEY)) {
+    stats = JSON.parse(localStorage.getItem(STORAGE_KEY));
+}
+var hasLib = function (entry, lib) {
+    return entry.libs.indexOf(lib) > -1;
+};
+var doesNotHaveLib = helpers_1.not(hasLib);
+var addLib = function (entry, lib) {
+    return entry.libs.push(lib);
+};
+var increaseCount = function (counter) {
+    return counter.count += 1;
+};
+var getPageEntry = function (stats, pageURI) {
+    return stats.tabStats[pageURI];
+};
+var hasPageEntry = function (stats, pageURI) {
+    return stats.tabStats[pageURI] !== undefined;
+};
+var doesNotHavePageEntry = helpers_1.not(hasPageEntry);
+var createPageEntry = function (stats, pageURI) {
+    return stats.tabStats[pageURI] = {
+        count: 0,
+        libs: []
+    };
+};
+var getTotalEntry = function (stats, lib) {
+    return stats.allStats.libs[lib];
+};
+var hasTotalEntry = function (stats, lib) {
+    return stats.allStats.libs[lib] !== undefined;
+};
+var doesNotHaveTotalEntry = helpers_1.not(hasTotalEntry);
+var createTotalEntry = function (stats, lib) {
+    return stats.allStats.libs[lib] = {
+        count: 0
+    };
+};
+var trackPageHit = function (stats, pageURI, lib) {
+    if (doesNotHavePageEntry(stats, pageURI))
+        createPageEntry(stats, pageURI);
+    var entry = getPageEntry(stats, pageURI);
+    addLib(entry, lib);
+    increaseCount(entry);
+};
+var trackTotalHit = function (stats, lib) {
+    if (doesNotHaveTotalEntry(stats, lib))
+        createTotalEntry(stats, lib);
+    var entry = getTotalEntry(stats, lib);
+    increaseCount(entry);
+};
+exports.addBoost = function (tabId, parsedURL) {
+    chrome.tabs.get(tabId, function (tab) {
+        // .url requires "tabs" permission
+        var pageURI = helpers_1.getUriFromTab(tab);
+        var lib = parsedURL.library;
+        trackPageHit(stats, pageURI, lib);
+        trackTotalHit(stats, lib);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+    });
+};
+exports.getPageStats = function (tabId, fn) {
+    return chrome.tabs.get(tabId, function (tab) {
+        var pageURI = helpers_1.getUriFromTab(tab);
+        fn(getPageEntry(stats, pageURI));
+    });
+};
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var reg_config_1 = __webpack_require__(9);
+var requestInterceptor_1 = __webpack_require__(0);
+var configSyntax_1 = __webpack_require__(2);
+var helpers_1 = __webpack_require__(1);
+var keys = Object.keys(reg_config_1.versions);
+var regExps = {};
+// prebuild regexps
+keys.forEach(function (key) { return regExps[key] = new RegExp(reg_config_1.versions[key].pattern); });
+console.log('regexps in regcheck ', regExps);
+function regCheck(normalizedUrl, tabId) {
+    if (normalizedUrl.isExtension) {
+        return;
+    }
+    var url = normalizedUrl.uri;
+    //	console.log('reg check', url)
+    var matchedKeys = keys.filter(matchUrl(url));
+    var versionedKeys = matchedKeys.filter(withVersions);
+    var unversionedKeys = matchedKeys.filter(helpers_1.not(withVersions));
+    var substitutedVersionedUrls = versionedKeys.map(extractVersion(url))
+        .filter(hasExtractedVersion)
+        .map(extractedVersion)
+        .filter(hasDefinedSubstitution)
+        .map(substitute(url));
+    var substitutedUnversionedUrls = unversionedKeys.map(substituteUnversioned(url));
+    var newUrls = substitutedVersionedUrls.concat(substitutedUnversionedUrls);
+    if (newUrls.length > 0) {
+        normalizedUrl.boostedBy = 'reg';
+        return requestInterceptor_1.redirect(newUrls[0], tabId, normalizedUrl);
+    }
+    else {
+        return requestInterceptor_1.ALLOW_REQUEST_TOKEN;
+    }
+}
+exports.regCheck = regCheck;
+;
+var matchUrl = function (url) {
+    return function (key) {
+        return regExps[key].test(url);
+    };
+};
+var withVersions = function (key) {
+    return reg_config_1.versions[key].versions !== undefined;
+};
+var extractVersion = function (url) {
+    return function (key) { return [key, regExps[key].exec(url)]; };
+};
+var hasExtractedVersion = function (keyVersionMatch) {
+    var versionMatch = keyVersionMatch[keyVersionMatch.length - 1];
+    return (versionMatch != null ? versionMatch.length : undefined) > 1;
+};
+var extractedVersion = function (keyVersionMatch) {
+    var key = keyVersionMatch[0];
+    var versionMatch = keyVersionMatch[1];
+    //const [key, versionMatch] = Array.from(keyVersionMatch);
+    return [key, versionMatch[1]];
+};
+var hasDefinedSubstitution = function (keyVersion) {
+    var key = keyVersion[0];
+    var version = keyVersion[1];
+    return reg_config_1.versions[key].versions.indexOf(version > -1);
+};
+var substitute = function (url) {
+    return function (keyVersion) {
+        var key = keyVersion[0];
+        var version = keyVersion[1];
+        return reg_config_1.versions[key].file.replace(configSyntax_1.VERSION_TAG, version);
+    };
+};
+var substituteUnversioned = function (url) {
+    return function (key) { return reg_config_1.versions[key].file; };
+};
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var semver = '\\s*[v=]*\\s*([0-9]+\\.[0-9]+\\.[0-9]+(-[0-9]+-?)?([a-zA-Z-+][a-zA-Z0-9-.:]*)?)';
+exports.versions = {
+    // wordpress-specific pattern
+    'wordpress-specific jquery': {
+        pattern: "jquery.js\\?ver=" + semver,
+        file: 'jquery/$version$/jquery.min.js'
+    },
+    // wordpress-specific pattern
+    'wordpress-specific jquery-migrate': {
+        pattern: "jquery-migrate.min.js\\?ver=" + semver,
+        versions: [
+            '1.2.1'
+        ],
+        file: 'jquery-migrate/$version$/jquery-migrate.min.js'
+    },
+    'jquery-migrate w/o version': {
+        pattern: 'jquery-migrate.min.js',
+        file: 'jquery-migrate/1.2.1/jquery-migrate.min.js'
+    },
+    'jquery-migrate w version': {
+        pattern: "jquery-migrate-" + semver + ".min.js",
+        file: 'jquery-migrate/1.2.1/jquery-migrate.min.js'
+    },
+    'jquery': {
+        pattern: "jquery-" + semver + ".min.js$",
+        versions: [
+            '2.2.2',
+            '2.2.1',
+            '2.2.0',
+            '2.1.4',
+            '2.1.3',
+            '2.1.2',
+            '2.1.1',
+            '2.1.0',
+            '2.0.3',
+            '2.0.2',
+            '2.0.1',
+            '2.0.0',
+            '1.11.3',
+            '1.11.2',
+            '1.11.1',
+            '1.11.0',
+            '1.10.2',
+            '1.10.1',
+            '1.10.0',
+            '1.9.1',
+            '1.9.0',
+            '1.8.3',
+            '1.8.2',
+            '1.8.1',
+            '1.8.0',
+            '1.7.2',
+            '1.7.1',
+            '1.7.0',
+            '1.6.4',
+            '1.6.3',
+            '1.6.2',
+            '1.6.1',
+            '1.6.0',
+            '1.5.2',
+            '1.5.1',
+            '1.5.0',
+            '1.4.4',
+            '1.4.3',
+            '1.4.2',
+            '1.4.1'
+        ],
+        file: 'jquery/$version$/jquery.min.js'
+    }
+};
+
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var requestInterceptor_1 = __webpack_require__(0);
+// todo import real filters
+var blockList = {
+    'bla.com': true
+};
+var isInBlocklist = function (host) {
+    return blockList[host];
+};
+exports.check = function (parsedURL, tabId) {
+    if (parsedURL.isExtension)
+        return;
+    //host totally matches the MSVP entry
+    if (isInBlocklist(parsedURL.host)) {
+        parsedURL.boostedBy = 'msvp';
+        return requestInterceptor_1.block(tabId, parsedURL);
+    }
+    else {
+        return requestInterceptor_1.ALLOW_REQUEST_TOKEN;
+    }
+};
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+
+var helpers_1 = __webpack_require__(1);
+//const getUri = require('./helpers').getUriFromTab;
+exports.load = function () {
+    var state = null;
+    if (localStorage["state"]) {
+        state = JSON.parse(localStorage["state"]);
+    }
+    if (state == null) {
+        state = {};
+    }
+    state.get = function (tabId, cb) {
+        return chrome.tabs.get(tabId, function (tab) {
+            var id = helpers_1.getUriFromTab(tab);
+            var pageConfig = state[id] || { id: id };
+            return cb(pageConfig);
+        });
+    };
+    state.forHost = function (host) { return state[host]; };
+    state.sync = function (pageConfig) {
+        state[pageConfig.id] = pageConfig;
+        localStorage["state"] = JSON.stringify(this);
+        return this;
+    };
+    return state;
+};
+
+
+/***/ })
+/******/ ]);
