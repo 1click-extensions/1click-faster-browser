@@ -1,4 +1,5 @@
 "use strict";
+exports.__esModule = true;
 var semver = '\\s*[v=]*\\s*([0-9]+\\.[0-9]+\\.[0-9]+(-[0-9]+-?)?([a-zA-Z-+][a-zA-Z0-9-.:]*)?)';
 exports.versions = {
     // wordpress-specific pattern

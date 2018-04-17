@@ -1,0 +1,19 @@
+{
+  "name": "1click-faster-browser",
+  "version": "1.0.0",
+  "description": "faster browser extention",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {"compile": "tsc src/bg.ts && webpack src/bg.js src/bg.bundle.js && cp src/bg.bundle.js ext/background.js"},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1click-extensions/webbooost.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/1click-extensions/webbooost/issues"
+  },
+  "homepage": "https://github.com/1click-extensions/webbooost#readme"
+}

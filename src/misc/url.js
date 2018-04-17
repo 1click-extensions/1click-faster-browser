@@ -1,4 +1,5 @@
 "use strict";
+exports.__esModule = true;
 var configSyntax_1 = require("../checkers/configSyntax");
 var last = function (arr) { return arr[arr.length - 1]; };
 exports.parseURL = function (url) {

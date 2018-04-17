@@ -1,6 +1,8 @@
 {
-  "browser_action": {"message": "Share picture from webcam" },
-  "ext_desc": {"message": "Create picture from webcam and share it in one click" },
-  "ext_name": {"message": "1click Share Webcam Picture" }
+  "page_title": {"message": "History with thumbnails - 1click extentions" },
+  "h1_title": {"message": "History with thumbnails" },
+  "browser_action": {"message": "Open history" },
+  "ext_desc": {"message": "Watch your history with thumbnails of the page you visited" },
+  "ext_name": {"message": "1click History with thumbnails" }
 }
 

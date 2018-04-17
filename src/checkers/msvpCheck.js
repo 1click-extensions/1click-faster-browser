@@ -1,4 +1,5 @@
 "use strict";
+exports.__esModule = true;
 var requestInterceptor_1 = require("../misc/requestInterceptor");
 // todo import real filters
 var blockList = {

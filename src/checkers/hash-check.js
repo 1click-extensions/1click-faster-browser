@@ -1,4 +1,5 @@
 "use strict";
+exports.__esModule = true;
 var hash_config_1 = require("../configs/hash-config");
 var requestInterceptor_1 = require("../misc/requestInterceptor");
 var configSyntax_1 = require("./configSyntax");
@@ -11,7 +12,7 @@ function check(normalizedUrl, tabId) {
     var checkUrl = normalizedUrl.uri;
     // console.log('hash check', checkUrl)
     // url totally match the library + version + cdn address
-    console.log('comparisonHash', comparisonHash);
+    //console.log('comparisonHash',comparisonHash);
     if (comparisonHash[checkUrl]) {
         normalizedUrl.boostedBy = 'hash';
         return requestInterceptor_1.redirect(comparisonHash[checkUrl], tabId, normalizedUrl);

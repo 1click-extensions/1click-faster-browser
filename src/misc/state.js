@@ -1,10 +1,11 @@
+"use strict";
 /*
  * decaffeinate suggestions:
  * DS102: Remove unnecessary code created because of implicit returns
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-"use strict";
+exports.__esModule = true;
 var helpers_1 = require("./helpers");
 //const getUri = require('./helpers').getUriFromTab;
 exports.load = function () {

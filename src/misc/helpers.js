@@ -1,4 +1,5 @@
 "use strict";
+exports.__esModule = true;
 var url_1 = require("./url");
 exports.js = function (filename) {
     return chrome.extension.getURL(['/injectees/', filename].join(''));

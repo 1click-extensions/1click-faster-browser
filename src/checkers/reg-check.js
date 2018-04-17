@@ -1,4 +1,5 @@
 "use strict";
+exports.__esModule = true;
 var reg_config_1 = require("../configs/reg-config");
 var requestInterceptor_1 = require("../misc/requestInterceptor");
 var configSyntax_1 = require("./configSyntax");

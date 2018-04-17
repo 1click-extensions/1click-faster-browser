@@ -1,4 +1,5 @@
 "use strict";
+exports.__esModule = true;
 var helpers_1 = require("./helpers");
 var stats_1 = require("./stats");
 var logAction = function (tabId, parsedURL) {

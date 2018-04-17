@@ -1,1 +1,1 @@
-# 1click-capture-webcam-as-png
+1click-edit-page-content

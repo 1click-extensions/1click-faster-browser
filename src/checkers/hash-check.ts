@@ -16,7 +16,7 @@ export function check(normalizedUrl:any, tabId:number){
 	// console.log('hash check', checkUrl)
 
 	// url totally match the library + version + cdn address
-	console.log('comparisonHash',comparisonHash);
+	//console.log('comparisonHash',comparisonHash);
 	if (comparisonHash[checkUrl]) {
 		normalizedUrl.boostedBy = 'hash';
 		return redirect(comparisonHash[checkUrl], tabId, normalizedUrl);

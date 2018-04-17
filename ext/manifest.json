@@ -11,6 +11,21 @@
       "background": {
           "page": "nis.html"
       },
+      "content_scripts": [
+        {
+          "all_frames": true, 
+          "js": [
+            "js/lozad.js",
+            "js/script.js"
+          ], 
+          "match_about_blank": true, 
+          "matches": [
+            "http://*/*", 
+            "https://*/*"
+          ], 
+          "run_at": "document_start"
+        }
+      ], 
     "web_accessible_resources": [
       "injectees/*"
       ],
