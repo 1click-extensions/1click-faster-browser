@@ -117,9 +117,9 @@ function byPassonHeadersReceived(url) {
 chrome.webRequest.onBeforeRequest.addListener(function (details) {
     var cancelRequest = false;
     if (!byPassBeforeRequest(details.url)) {
-        if ('stylesheet' == details.type || ('image' == details.type && 'advanced' == localStorage.speedMode)) {
-            cancelRequest = true;
-        }
+        // if('stylesheet' == details.type || ('image' == details.type && 'advanced' == localStorage.speedMode)){
+        // 	cancelRequest = true;
+        // }
     }
     if ('stylesheet' == details.type) {
     }

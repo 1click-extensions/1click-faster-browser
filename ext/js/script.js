@@ -14,10 +14,43 @@ fasterTool = {
         },
         callback : function(mutationsList) {
             for(var mutation of mutationsList) {
-                console.log(mutationsList);
+                if (mutation.type == 'childList') {
+                    mutation.addedNodes.forEach(function(childElment){
+                        if('IMG' == childElment.nodeName){
+                            if(childElment.src && !/data:/.test(src)){
+                                var src = childElment.src;
+                                childElment.setAttribute('data-src', fasterTool.fixUrlLazy(src));
+                                childElment.setAttribute('one-click-lazy', 'lozad');
+                                childElment.removeAttribute('src');
+                                childElment.src = fasterTool.imgPlaceHolderImg;
+                                console.log(childElment,childElment.getAttribute('one-click-lazy'));
+                                fasterTool.startTimeout();
+                                childElment.classList.add('lozad');
+                                childElment.addEventListener('click', function(){
+                                    fasterTool.lozad.triggerLoad(childElment);
+                                });
+                            }
+                        }
+                        else if('STYLE' == childElment.nodeName || ("LINK"  == childElment.nodeName && 'stylesheet' == childElment.getAttribute('rel'))){
+                            var urlAttr = 'STYLE' == childElment.nodeName ? 'src' : 'href';
+                            if(childElment[urlAttr]){
+                                if(!childElment.getAttribute('media')){
+                                    childElment.setAttribute('media','none');
+                                    childElment.addEventListener('load', function(){
+                                        //console.log(this);
+                                        this.setAttribute('media','all');
+                                    });
+                                }
+                                // style[urlAttr] = fasterTool.fixUrlLazy(style[urlAttr]);
+                                // found = true;
+                            }
+                        }
+                    });
+                }
             }
         }
     },
+    
     addLazyAttr: function(url){
         
         var styles = document.querySelectorAll('style,link[rel=stylesheet]'),
@@ -48,19 +81,21 @@ fasterTool = {
         fasterTool.lazyImagesTimeout = setTimeout(fasterTool.lazyTimeoutCallback, 500);
     },
     lazyTimeoutCallback: function(){
-        var images = document.querySelectorAll('img[src]');
-        images.forEach(function(img){
-            //console.log(fasterTool.lazyLoadUrls)
-            if(fasterTool.lazyLoadUrls.indexOf(img.src) > -1){
-                fasterTool.lazyLoadUrls = fasterTool.lazyLoadUrls.splice(fasterTool.lazyLoadUrls.indexOf(img.src),1);
-                img.setAttribute('data-src', fasterTool.fixUrlLazy(img.src));
-                //img.src = fasterTool.imgPlaceHolderImg;
-                img.classList.add('lozad');
-            }
-        });
-        //console.log('not found!!',fasterTool.lazyLoadUrls )
-        fasterTool.lazyLoadUrls = [];
-        fasterTool.lozad.observe();
+        // var images = document.querySelectorAll('img[src]');
+        // images.forEach(function(img){
+        //     //console.log(fasterTool.lazyLoadUrls)
+        //     if(fasterTool.lazyLoadUrls.indexOf(img.src) > -1){
+        //         fasterTool.lazyLoadUrls = fasterTool.lazyLoadUrls.splice(fasterTool.lazyLoadUrls.indexOf(img.src),1);
+        //         img.setAttribute('data-src', fasterTool.fixUrlLazy(img.src));
+        //         //img.src = fasterTool.imgPlaceHolderImg;
+        //         img.classList.add('lozad');
+        //     }
+        // });
+        // //console.log('not found!!',fasterTool.lazyLoadUrls )
+        // fasterTool.lazyLoadUrls = [];
+        console.log('fasterTool.lozad.observe();');
+        fasterTool.lozad.observe('[one-click-lazy="lozad"]');
+        fasterTool.lozad.observe('.lozad');
 
     },
     markImgAsCanceled :function(url){
@@ -134,7 +169,7 @@ fasterTool = {
     fixUrlLazy : function(url){
         return fasterTool.fixUrl(url, 'oneClickFasterIsLazy');
     },
-    fixUrlBig : function(){
+    fixUrlBig : function(url){
         return fasterTool.fixUrl(url, 'oneClickFasterAllowBig');
     },
     fixUrl : function(url, add){
@@ -146,7 +181,7 @@ fasterTool = {
     imgPlaceHolderImg: chrome.runtime.getURL('images/image-placeholder.png') ,
     videoPlaceHolderImg: chrome.runtime.getURL('images/video-placeholder.png') 
 }
-//fasterTool.observe.start();
+fasterTool.observe.start();
 
 
 
@@ -157,7 +192,7 @@ chrome.runtime.onMessage.addListener(
           //console.log(request.type);
           switch(request.type){
             case 'image':
-                fasterTool.markImgAsLazyLoad(request.url);
+                //fasterTool.markImgAsLazyLoad(request.url);
                 break;
             case 'image-big':
               fasterTool.markImgAsCanceled(request.url);
