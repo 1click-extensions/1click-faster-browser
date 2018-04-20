@@ -1,0 +1,60 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+		<title>Capture</title>
+		<script src="/js/nouislider.min.js"></script>
+		<link rel="stylesheet" href="/css/nouislider.min.css"></link>
+        <style >
+			.main{
+				min-width: 400px;
+				min-height: 170px;
+				padding: 3px 10px 7px;
+			}
+			.third{
+				display: inline-block;
+				width: 32%;
+			}
+			.half{
+				display: inline-block;
+				width: 49%;
+			}
+			.explain{
+				text-align: center;
+				padding-top: 15px;
+			}
+			.first{
+				text-align: left;
+			}
+			.last{
+				text-align: right;
+			}
+			.box{
+				padding: 0 12px;
+			}
+			</style>
+    </head>
+    <body>
+		<div class="main">
+			<div class="box">
+				<h2>Configuration for this site</h2>
+				<div id="current"></div>
+				<div class="explain">
+					<div class="first third">Disable in this site</div>
+					<div class="third">Normal features</div>
+					<div class="last third">Advanced features</div>
+				</div>
+			</div>
+			<div class="box">
+				<h2>Configuration for all sites</h2>
+				<div id="global"></div>
+				<div class="explain">
+					<div class="first half">Normal features</div>
+					<div class="last half">Advanced features</div>
+				</div>
+			</div>
+	    </div>
+		<script src="/js/popup.js"></script>
+    </body>
+</html>

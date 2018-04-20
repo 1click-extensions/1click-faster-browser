@@ -23,7 +23,7 @@ fasterTool = {
                                 childElment.setAttribute('one-click-lazy', 'lozad');
                                 childElment.removeAttribute('src');
                                 childElment.src = fasterTool.imgPlaceHolderImg;
-                                console.log(childElment,childElment.getAttribute('one-click-lazy'));
+                                //console.log(childElment,childElment.getAttribute('one-click-lazy'));
                                 fasterTool.startTimeout();
                                 childElment.classList.add('lozad');
                                 childElment.addEventListener('click', function(){

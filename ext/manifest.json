@@ -32,7 +32,8 @@
       ],
     "browser_action":{
       "default_icon": "images/browseraction.png",
-      "default_title": "__MSG_browser_action__"
+      "default_title": "__MSG_browser_action__",
+      "default_popup": "pages/popup.html"
       },
     "offline_enabled": true,
     "default_locale": "en",

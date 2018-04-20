@@ -126,25 +126,25 @@ function byPassonHeadersReceived(url){
   return url.indexOf('oneClickFasterAllowBig=1') > -1;
 }
 
-chrome.webRequest.onBeforeRequest.addListener(
-    function(details) {
-		var cancelRequest = false;
-		if(!byPassBeforeRequest(details.url)){
-			// if('stylesheet' == details.type || ('image' == details.type && 'advanced' == localStorage.speedMode)){
-			// 	cancelRequest = true;
-			// }
-		}
-      if('stylesheet'==details.type){
+// chrome.webRequest.onBeforeRequest.addListener(
+//     function(details) {
+// 		var cancelRequest = false;
+// 		if(!byPassBeforeRequest(details.url)){
+// 			// if('stylesheet' == details.type || ('image' == details.type && 'advanced' == localStorage.speedMode)){
+// 			// 	cancelRequest = true;
+// 			// }
+// 		}
+//       if('stylesheet'==details.type){
 
-      }
-      if(cancelRequest){
-        sendAborted(details);
-       // byPassedOnce.push(details.url);
-      }
-      return {cancel: cancelRequest};
-    },
-    {urls: ["<all_urls>"]},
-    ["blocking"]);
+//       }
+//       if(cancelRequest){
+//         sendAborted(details);
+//        // byPassedOnce.push(details.url);
+//       }
+//       return {cancel: cancelRequest};
+//     },
+//     {urls: ["<all_urls>"]},
+//     ["blocking"]);
 chrome.webRequest.onHeadersReceived.addListener(function(details){
     console.log(details.type);
     
@@ -162,7 +162,7 @@ chrome.webRequest.onHeadersReceived.addListener(function(details){
         }
       }
     }
-      //console.log(fileLength);
+    console.log(fileLength, 'fileLength');
     let cancelRequest = fileLength > localStorage.maxFileSize;
     if(cancelRequest){
       console.log(details.type, details.url, fileLength /1000);
