@@ -293,7 +293,8 @@ chrome.tabs.onUpdated.addListener(function (tabId, change, tab) {
 // cleanup all those listeners
 chrome.tabs.onRemoved.addListener(function (tabId, removeObj) {
 	chrome.webRequest.onBeforeRequest.removeListener(tabListeners[tabId]);
-	return tabListeners[tabId] = null;
+	tabListeners[tabId] = null;
+	delete(tabListeners[tabId]);
 });
 
 

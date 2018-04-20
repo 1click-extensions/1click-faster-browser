@@ -67,7 +67,7 @@ var query = { active: true, currentWindow: true },
                 }
             });
             currentSlider.on('change', function(){
-                setCurrnetThrottleLevel(domain,currentSlider.get());
+                setCurrnetThrottleLevel(domain,Number(currentSlider.get()));
                 
             });
             console.log(currentSlider)
@@ -83,7 +83,7 @@ var query = { active: true, currentWindow: true },
                 }
             });
             globalSlider.on('change', function(){
-                setGlobalThrottleLevel(globalSlider.get());
+                setGlobalThrottleLevel(Number(globalSlider.get()));
             });
             console.log(globalSlider, globalThrottleLevel);
         });

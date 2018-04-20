@@ -39,6 +39,7 @@ fasterTool = {
                             var urlAttr = 'STYLE' == childElment.nodeName ? 'src' : 'href';
                             if(childElment[urlAttr]){
                                 if(!childElment.getAttribute('media')){
+                                    console.log(childElment,'childElment');
                                     childElment.setAttribute('media','none');
                                     childElment.addEventListener('load', function(){
                                         //console.log(this);
@@ -188,8 +189,8 @@ fasterTool = {
 console.log('getCurrnetThrottleLevel',getCurrnetThrottleLevel);
 getCurrnetThrottleLevel(location.hostname, function(levelFromData){
     level = levelFromData;
-    console.log(level, 'level');
     if(level){
+        console.log(level, 'level');
         fasterTool.observe.start();
     }
 });

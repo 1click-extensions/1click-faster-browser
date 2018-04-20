@@ -24,6 +24,7 @@ function setCurrnetThrottleLevel(domain, level){
     getDomains(function(domains){
 
         domains[domain] = level;
+        console.log(domains,'domains');
         chrome.storage.local.set({'domains': domains});
         chrome.runtime.sendMessage({action: "domainsUpdated"});
     })
