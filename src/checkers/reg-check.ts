@@ -16,7 +16,7 @@ const regExps:any = {};
 // prebuild regexps
 keys.forEach(key=> regExps[key] = new RegExp(config[key].pattern));
 
-console.log('regexps in regcheck ', regExps);
+//console.log('regexps in regcheck ', regExps);
 
 export function regCheck(normalizedUrl:any, tabId:number){
 	if (normalizedUrl.isExtension) { return; }

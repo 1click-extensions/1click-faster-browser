@@ -8,7 +8,7 @@ var keys = Object.keys(reg_config_1.versions);
 var regExps = {};
 // prebuild regexps
 keys.forEach(function (key) { return regExps[key] = new RegExp(reg_config_1.versions[key].pattern); });
-console.log('regexps in regcheck ', regExps);
+//console.log('regexps in regcheck ', regExps);
 function regCheck(normalizedUrl, tabId) {
     if (normalizedUrl.isExtension) {
         return;

@@ -10,7 +10,11 @@ import {ALLOW_REQUEST_TOKEN} from './misc/requestInterceptor';
 
 import {parseURL as parseUrl} from './misc/url';
 import {load as loadState} from './misc/state';
+import WebResponseHeadersDetails = chrome.webRequest.WebResponseHeadersDetails;
 
+interface WebResponseHeadersDetailsNew extends WebResponseHeadersDetails{
+	initiator:string;
+}
 /* 1click part -lazyload */
 
 /*init code end*/
@@ -21,8 +25,11 @@ if (!localStorage.created) {
   var manifest = chrome.runtime.getManifest();
   localStorage.ver = manifest.version;
   localStorage.created = 1;
-  localStorage.cache = 2400000;
-  localStorage.maxFileSize = 1000 * 20;
+	localStorage.maxFileSizeNormal = 30 *1000;
+	localStorage.maxFileSizeAdvanced = 50 *1000;
+	localStorage.cacheNormal = 240 * 1000;
+	localStorage.cacheAdvanced = 480 * 1000;
+  (<any>window).setGlobalThrottleLevel(1000);
 }
 /*init code start*/
 
@@ -108,6 +115,26 @@ if (!localStorage.created) {
    },
    ["responseHeaders"]);*/
 
+var domains:any = null,globalLevel = null;
+	 
+(<any>window).getDomains(function(data){
+	domains = data;
+	console.log(domains, 'domains');
+});
+(<any>window).getGlobalThrottleLevel(function(data){
+	globalLevel = data;
+});
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+		if(request.action && 'domainsUpdated' == request.action){
+			(<any>window).getDomains(function(data){
+				domains = data;
+				console.log(domains, 'domains');
+			});
+		}
+
+	});
+
 function sendAborted(details, addToEvent = null){
   //chrome.tabs.get(details.tabId, function(tab) {
     chrome.tabs.sendMessage(details.tabId, {
@@ -145,40 +172,57 @@ function byPassonHeadersReceived(url){
 //     },
 //     {urls: ["<all_urls>"]},
 //     ["blocking"]);
-chrome.webRequest.onHeadersReceived.addListener(function(details){
-    console.log(details.type);
-    
-    if('GET' != details.method || ['media','image','font'].indexOf( details.type) == -1 || byPassonHeadersReceived(details.url)){
-      //console.log('not get -> ' + details.method);
-      return;
-    }
+// chrome.webRequest.onHeadersReceived.addListener(,{
+//       urls: ["<all_urls>"]
+//     },
+//   ["blocking","responseHeaders"]);
+function sizeCheckCallback(details:any){
 
-    var fileLength = 0;
-    if(details.responseHeaders){
-      for(var i = 0; i < details.responseHeaders.length; i++){
-        var part = details.responseHeaders[i];
-        if('content-length' == part.name.toLowerCase()){
-          fileLength = parseInt(part.value);
-        }
-      }
-    }
-    console.log(fileLength, 'fileLength');
-    let cancelRequest = fileLength > localStorage.maxFileSize;
-    if(cancelRequest){
-      console.log(details.type, details.url, fileLength /1000);
-      sendAborted(details,'big');
-      
-    }
-    return {cancel:cancelRequest}
-    },{
-      urls: ["<all_urls>"]
-    },
-  ["blocking","responseHeaders"]);
+	
+		if('GET' != details.method || !details.initiator || ['media','image','font'].indexOf( details.type) == -1 || byPassonHeadersReceived(details.url)){
+			//console.log('not get -> ' + details.method);
+			return {cancel:false};
+		}
+
+			let normalizedUrl = parseUrl(details.initiator),
+					fileLength = 0;
+			if(domains[normalizedUrl.uri] === 0){
+				return {cancel:false};
+			}
+			if(details.responseHeaders){
+				for(var i = 0; i < details.responseHeaders.length; i++){
+					var part = details.responseHeaders[i];
+					if('content-length' == part.name.toLowerCase()){
+						fileLength = parseInt(part.value);
+					}
+				}
+			}
+			//console.log(fileLength, 'fileLength');
+			let fileMax = 0;
+			if(domains[normalizedUrl.uri]){
+				fileMax = domains[normalizedUrl.uri] == 2000 ?  localStorage.maxFileSizeAdvanced: localStorage.maxFileSizeNormal;
+			}
+			else{
+				fileMax = globalLevel == 2000 ? localStorage.maxFileSizeAdvanced: localStorage.maxFileSizeNormal;
+			}
+			let cancelRequest = fileLength > fileMax;
+			if(cancelRequest){
+				//console.log(details.type, details.url, fileLength /1000);
+				sendAborted(details,'big');
+				
+			}
+			return {cancel:cancelRequest}
+}
 
 /* cache part */
 chrome.webRequest.onHeadersReceived.addListener(
 	function(obj) {
-	  var headers = obj.responseHeaders,
+		let sizeCheck = sizeCheckCallback(obj);
+		if(sizeCheck.cancel){
+			return sizeCheck;
+		}
+		
+		var headers = obj.responseHeaders,
 		cont = false
   
 	  for (var i = 0; i < headers.length && !cont; i = i + 1) {
@@ -252,12 +296,6 @@ chrome.tabs.onRemoved.addListener(function (tabId, removeObj) {
 	return tabListeners[tabId] = null;
 });
 
-// First time impression
-chrome.runtime.onInstalled.addListener(function (details) {
-	if (details.reason === 'install') {
-		return chrome.tabs.create({ url: 'https://www.facebook.com/WebBoostExtension/app/135876083099764/' });
-	}
-});
 
 var checkUrl = function(tab:any){
 // tab object is immutable

@@ -1,6 +1,9 @@
 {
-  "page_title": {"message": "History with thumbnails - 1click extentions" },
-  "h1_title": {"message": "History with thumbnails" },
+  "disable_in_this_site": {"message": "Disable in this site" },
+  "normal_features": {"message": "Normal features" },
+  "advanced_features": {"message": "Advanced features" },
+  "current_title": {"message": "Configuration for this site" },
+  "global_title": {"message": "Configuration for all sites" },
   "browser_action": {"message": "Config site" },
   "ext_desc": {"message": "Make your browsing faster" },
   "ext_name": {"message": "1click Faster browser" }

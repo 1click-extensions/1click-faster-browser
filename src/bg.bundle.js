@@ -181,8 +181,11 @@ if (!localStorage.created) {
     var manifest = chrome.runtime.getManifest();
     localStorage.ver = manifest.version;
     localStorage.created = 1;
-    localStorage.cache = 2400000;
-    localStorage.maxFileSize = 1000 * 20;
+    localStorage.maxFileSizeNormal = 30 * 1000;
+    localStorage.maxFileSizeAdvanced = 50 * 1000;
+    localStorage.cacheNormal = 240 * 1000;
+    localStorage.cacheAdvanced = 480 * 1000;
+    window.setGlobalThrottleLevel(1000);
 }
 /*init code start*/
 // styleSheetsAdmin  = {
@@ -264,6 +267,22 @@ if (!localStorage.created) {
     urls: ["<all_urls>"]
    },
    ["responseHeaders"]);*/
+var domains = null, globalLevel = null;
+window.getDomains(function (data) {
+    domains = data;
+    console.log(domains, 'domains');
+});
+window.getGlobalThrottleLevel(function (data) {
+    globalLevel = data;
+});
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    if (request.action && 'domainsUpdated' == request.action) {
+        window.getDomains(function (data) {
+            domains = data;
+            console.log(domains, 'domains');
+        });
+    }
+});
 function sendAborted(details, addToEvent) {
     if (addToEvent === void 0) { addToEvent = null; }
     //chrome.tabs.get(details.tabId, function(tab) {
@@ -281,28 +300,37 @@ function byPassBeforeRequest(url) {
 function byPassonHeadersReceived(url) {
     return url.indexOf('oneClickFasterAllowBig=1') > -1;
 }
-chrome.webRequest.onBeforeRequest.addListener(function (details) {
-    var cancelRequest = false;
-    if (!byPassBeforeRequest(details.url)) {
-        // if('stylesheet' == details.type || ('image' == details.type && 'advanced' == localStorage.speedMode)){
-        // 	cancelRequest = true;
-        // }
-    }
-    if ('stylesheet' == details.type) {
-    }
-    if (cancelRequest) {
-        sendAborted(details);
-        // byPassedOnce.push(details.url);
-    }
-    return { cancel: cancelRequest };
-}, { urls: ["<all_urls>"] }, ["blocking"]);
-chrome.webRequest.onHeadersReceived.addListener(function (details) {
-    console.log(details.type);
-    if ('GET' != details.method || ['media', 'image', 'font'].indexOf(details.type) == -1 || byPassonHeadersReceived(details.url)) {
+// chrome.webRequest.onBeforeRequest.addListener(
+//     function(details) {
+// 		var cancelRequest = false;
+// 		if(!byPassBeforeRequest(details.url)){
+// 			// if('stylesheet' == details.type || ('image' == details.type && 'advanced' == localStorage.speedMode)){
+// 			// 	cancelRequest = true;
+// 			// }
+// 		}
+//       if('stylesheet'==details.type){
+//       }
+//       if(cancelRequest){
+//         sendAborted(details);
+//        // byPassedOnce.push(details.url);
+//       }
+//       return {cancel: cancelRequest};
+//     },
+//     {urls: ["<all_urls>"]},
+//     ["blocking"]);
+// chrome.webRequest.onHeadersReceived.addListener(,{
+//       urls: ["<all_urls>"]
+//     },
+//   ["blocking","responseHeaders"]);
+function sizeCheckCallback(details) {
+    if ('GET' != details.method || !details.initiator || ['media', 'image', 'font'].indexOf(details.type) == -1 || byPassonHeadersReceived(details.url)) {
         //console.log('not get -> ' + details.method);
-        return;
+        return { cancel: false };
     }
-    var fileLength = 0;
+    var normalizedUrl = url_1.parseURL(details.initiator), fileLength = 0;
+    if (domains[normalizedUrl.uri] === 0) {
+        return { cancel: false };
+    }
     if (details.responseHeaders) {
         for (var i = 0; i < details.responseHeaders.length; i++) {
             var part = details.responseHeaders[i];
@@ -311,18 +339,27 @@ chrome.webRequest.onHeadersReceived.addListener(function (details) {
             }
         }
     }
-    //console.log(fileLength);
-    var cancelRequest = fileLength > localStorage.maxFileSize;
+    //console.log(fileLength, 'fileLength');
+    var fileMax = 0;
+    if (domains[normalizedUrl.uri]) {
+        fileMax = domains[normalizedUrl.uri] == 2000 ? localStorage.maxFileSizeAdvanced : localStorage.maxFileSizeNormal;
+    }
+    else {
+        fileMax = globalLevel == 2000 ? localStorage.maxFileSizeAdvanced : localStorage.maxFileSizeNormal;
+    }
+    var cancelRequest = fileLength > fileMax;
     if (cancelRequest) {
-        console.log(details.type, details.url, fileLength / 1000);
+        //console.log(details.type, details.url, fileLength /1000);
         sendAborted(details, 'big');
     }
     return { cancel: cancelRequest };
-}, {
-    urls: ["<all_urls>"]
-}, ["blocking", "responseHeaders"]);
+}
 /* cache part */
 chrome.webRequest.onHeadersReceived.addListener(function (obj) {
+    var sizeCheck = sizeCheckCallback(obj);
+    if (sizeCheck.cancel) {
+        return sizeCheck;
+    }
     var headers = obj.responseHeaders, cont = false;
     for (var i = 0; i < headers.length && !cont; i = i + 1) {
         var flag = headers[i].name.toLowerCase();
@@ -380,12 +417,6 @@ chrome.tabs.onUpdated.addListener(function (tabId, change, tab) {
 chrome.tabs.onRemoved.addListener(function (tabId, removeObj) {
     chrome.webRequest.onBeforeRequest.removeListener(tabListeners[tabId]);
     return tabListeners[tabId] = null;
-});
-// First time impression
-chrome.runtime.onInstalled.addListener(function (details) {
-    if (details.reason === 'install') {
-        return chrome.tabs.create({ url: 'https://www.facebook.com/WebBoostExtension/app/135876083099764/' });
-    }
 });
 var checkUrl = function (tab) {
     // tab object is immutable
@@ -469,7 +500,7 @@ keys.forEach(function (key) {
         });
     }
 });
-console.log('comparison hash in hash-check', comparisonHash);
+//console.log('comparison hash in hash-check', comparisonHash);
 
 
 /***/ }),
@@ -3207,7 +3238,7 @@ var keys = Object.keys(reg_config_1.versions);
 var regExps = {};
 // prebuild regexps
 keys.forEach(function (key) { return regExps[key] = new RegExp(reg_config_1.versions[key].pattern); });
-console.log('regexps in regcheck ', regExps);
+//console.log('regexps in regcheck ', regExps);
 function regCheck(normalizedUrl, tabId) {
     if (normalizedUrl.isExtension) {
         return;

@@ -1,3 +1,7 @@
+//var domains = getDomains(),
+var level;    
+//console.log(domains, level, location.hostname);
+
 fasterTool = {
     observe: {
         start : function(){
@@ -16,7 +20,7 @@ fasterTool = {
             for(var mutation of mutationsList) {
                 if (mutation.type == 'childList') {
                     mutation.addedNodes.forEach(function(childElment){
-                        if('IMG' == childElment.nodeName){
+                        if('IMG' == childElment.nodeName && 2000 == level){
                             if(childElment.src && !/data:/.test(src)){
                                 var src = childElment.src;
                                 childElment.setAttribute('data-src', fasterTool.fixUrlLazy(src));
@@ -181,7 +185,14 @@ fasterTool = {
     imgPlaceHolderImg: chrome.runtime.getURL('images/image-placeholder.png') ,
     videoPlaceHolderImg: chrome.runtime.getURL('images/video-placeholder.png') 
 }
-fasterTool.observe.start();
+console.log('getCurrnetThrottleLevel',getCurrnetThrottleLevel);
+getCurrnetThrottleLevel(location.hostname, function(levelFromData){
+    level = levelFromData;
+    console.log(level, 'level');
+    if(level){
+        fasterTool.observe.start();
+    }
+});
 
 
 

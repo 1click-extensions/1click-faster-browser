@@ -17,7 +17,7 @@ function extractHostname(url) {
     return hostname;
 }
 
-function sliderToFunction(value){
+/*function sliderToFunction(value){
     var title = '';
     switch(value){
         case 0:
@@ -46,77 +46,63 @@ function sliderFromFunction(title){
             break;
     }
     return title;
-}
+}*/
 
-function getGlobalThrottleLevel(){
-    return localStorage.globalThrottleLevel ? Number(localStorage.globalThrottleLevel) : 1000;
-}
-function setGlobalThrottleLevel(value){
-    return localStorage.globalThrottleLevel = value;
-}
 
-function getDomains(domain, level){
-    var domains = localStorage.domains;
-    if(!domains){
-        domains = {};
-    }
-    else{
-        domains = JSON.parse(domains);
-    }
-    return domains;
-}
-function setCurrnetThrottleLevel(domain, level){
-    var domains = getDomains();
-    domains[domain] = level;
-    localStorage.domains = JSON.stringify(domains);
-}
-
-function getCurrnetThrottleLevel(domain){
-    var domains = getDomains();
-    if(domains && domains[domain]){
-        return domains[domain];
-    }
-    else{
-        return getGlobalThrottleLevel();
-    }
-}
 
 var query = { active: true, currentWindow: true },
     callbackSearch = function(tabs) {
         var currentTab = tabs[0],
             domain = extractHostname(currentTab.url),
-            currentThrottleLevel = getCurrnetThrottleLevel(domain),
-            globalThrottleLevel = getGlobalThrottleLevel(),
             currentSliderDiv = document.getElementById('current'),
-            globalSliderDiv = document.getElementById('global'),
+            globalSliderDiv = document.getElementById('global');
        
-        currentSlider =  noUiSlider.create(currentSliderDiv, {
-            start: [ currentThrottleLevel ],
-            step: 1000,
-            range: {
-                'min': [  0 ],
-                'max': [ 2000 ]
-            }
-        }),
+        getCurrnetThrottleLevel(domain, function(currentThrottleLevel){
+            currentSlider =  noUiSlider.create(currentSliderDiv, {
+                start: [ currentThrottleLevel ],
+                step: 1000,
+                range: {
+                    'min': [ 0 ],
+                    'max': [ 2000 ]
+                }
+            });
+            currentSlider.on('change', function(){
+                setCurrnetThrottleLevel(domain,currentSlider.get());
+                
+            });
+            console.log(currentSlider)
+        });
+
+        getGlobalThrottleLevel(function(globalThrottleLevel){
+            globalSlider = noUiSlider.create( globalSliderDiv, {
+                start: [ globalThrottleLevel ],
+                step: 1000,
+                range: {
+                    'min': [  1000 ],
+                    'max': [ 2000 ]
+                }
+            });
+            globalSlider.on('change', function(){
+                setGlobalThrottleLevel(globalSlider.get());
+            });
+            console.log(globalSlider, globalThrottleLevel);
+        });
+
+
         
-        globalSlider = noUiSlider.create( globalSliderDiv, {
-            start: [ globalThrottleLevel ],
-            step: 1000,
-            range: {
-                'min': [  1000 ],
-                'max': [ 2000 ]
-            }
-        });
-        console.log({currentThrottleLevel:currentThrottleLevel, globalThrottleLevel:globalThrottleLevel})
-        currentSlider.on('change', function(){
-            setCurrnetThrottleLevel(domain,currentSlider.get());
-        });
-        globalSlider.on('change', function(){
-            setGlobalThrottleLevel(globalSlider.get());
-        });
+        //console.log({currentThrottleLevel:currentThrottleLevel, globalThrottleLevel:globalThrottleLevel})
+        document.getElementById('site-domain').innerText = domain;
+        
+       
     }
 
-
+document.getElementById('current-disable').innerText = chrome.i18n.getMessage('disable_in_this_site');
+document.getElementById('current-normal').innerText = chrome.i18n.getMessage('normal_features');
+document.getElementById('current-advanced').innerText = chrome.i18n.getMessage('advanced_features');
+document.getElementById('global-normal').innerText = chrome.i18n.getMessage('normal_features');
+document.getElementById('global-advanced').innerText = chrome.i18n.getMessage('advanced_features');
+document.getElementById('global-title').innerText = chrome.i18n.getMessage('global_title');
+document.getElementById('current-title').innerText = chrome.i18n.getMessage('current_title');
 chrome.tabs.query(query, callbackSearch);
 
 

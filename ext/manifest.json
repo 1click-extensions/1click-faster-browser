@@ -6,15 +6,17 @@
       "tabs", 
       "<all_urls>", 
       "webRequest", 
+      "storage", 
       "webRequestBlocking"
         ],
       "background": {
-          "page": "nis.html"
+          "page": "background.html"
       },
       "content_scripts": [
         {
           "all_frames": true, 
           "js": [
+            "js/conf.js",
             "js/lozad.js",
             "js/script.js"
           ], 

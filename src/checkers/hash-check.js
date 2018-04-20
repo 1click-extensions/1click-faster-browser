@@ -42,4 +42,4 @@ keys.forEach(function (key) {
         });
     }
 });
-console.log('comparison hash in hash-check', comparisonHash);
+//console.log('comparison hash in hash-check', comparisonHash);

@@ -1,7 +1,11 @@
 {
-  "page_title": {"message": "היסטוריה עם תמונות | תוספים בלחיצה אחת" },
-  "h1_title": {"message": "היסטוריה עם תמונות" },
-  "browser_action": {"message": "פתח היסטוריה" },
-  "ext_desc": {"message": "ראה את כל ההיסטוריה שלך עם תמונות של האתר" },
-  "ext_name": {"message": "היסטוריה עם תמונות בלחיצה אחת" }
+  "disable_in_this_site": {"message": "השבת באתר זה" },
+  "normal_features": {"message": "מצב רגיל" },
+  "advanced_features": {"message": "מצב מתקדם" },
+  "current_title": {"message": "הגדרות לאתר זה" },
+  "global_title": {"message": "הגדרות לכל האתרים" },
+  "browser_action": {"message": "הגדרות" },
+  "ext_desc": {"message": "Make your browsing faster" },
+  "ext_name": {"message": "1click Faster browser" }
 }
+

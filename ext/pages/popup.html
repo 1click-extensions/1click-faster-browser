@@ -5,6 +5,7 @@
         <meta http-equiv="x-ua-compatible" content="ie=edge">
 		<title>Capture</title>
 		<script src="/js/nouislider.min.js"></script>
+		<script src="/js/conf.js"></script>
 		<link rel="stylesheet" href="/css/nouislider.min.css"></link>
         <style >
 			.main{
@@ -33,25 +34,43 @@
 			.box{
 				padding: 0 12px;
 			}
+			#global{
+				width: 120px;
+				margin: 0 auto;
+				
+			}
+			/*.global .explain{
+				width: 187%;
+				position: relative;
+				left: -33%;
+			}*/
+			.global{
+				border-top:1px solid brown;
+				margin-top:10px;
+			}
+			.global .explain{
+				width: 240px;
+				margin: 0 auto;
+			}
 			</style>
     </head>
     <body>
 		<div class="main">
 			<div class="box">
-				<h2>Configuration for this site</h2>
+				<h2><span id="current-title">Configuration for this site</span> (<span id="site-domain"></span>)</h2>
 				<div id="current"></div>
 				<div class="explain">
-					<div class="first third">Disable in this site</div>
-					<div class="third">Normal features</div>
-					<div class="last third">Advanced features</div>
+					<div class="first third" id="current-disable">Disable in this site</div>
+					<div class="third" id="current-normal">Normal features</div>
+					<div class="last third" id="current-advanced">Advanced features</div>
 				</div>
 			</div>
-			<div class="box">
-				<h2>Configuration for all sites</h2>
+			<div class="box global">
+				<h2 id="global-title">Configuration for all sites</h2>
 				<div id="global"></div>
 				<div class="explain">
-					<div class="first half">Normal features</div>
-					<div class="last half">Advanced features</div>
+					<div class="first half" id="global-normal">Normal features</div>
+					<div class="last half" id="global-advanced">Advanced features</div>
 				</div>
 			</div>
 	    </div>
