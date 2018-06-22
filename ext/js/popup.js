@@ -70,7 +70,7 @@ var query = { active: true, currentWindow: true },
                 setCurrnetThrottleLevel(domain,Number(currentSlider.get()));
                 
             });
-            console.log(currentSlider)
+            //console.log(currentSlider)
         });
 
         getGlobalThrottleLevel(function(globalThrottleLevel){
@@ -85,7 +85,7 @@ var query = { active: true, currentWindow: true },
             globalSlider.on('change', function(){
                 setGlobalThrottleLevel(Number(globalSlider.get()));
             });
-            console.log(globalSlider, globalThrottleLevel);
+            //console.log(globalSlider, globalThrottleLevel);
         });
 
 
@@ -103,6 +103,40 @@ document.getElementById('global-normal').innerText = chrome.i18n.getMessage('nor
 document.getElementById('global-advanced').innerText = chrome.i18n.getMessage('advanced_features');
 document.getElementById('global-title').innerText = chrome.i18n.getMessage('global_title');
 document.getElementById('current-title').innerText = chrome.i18n.getMessage('current_title');
-chrome.tabs.query(query, callbackSearch);
+var neededPerm = {permissions: ["tabs","webRequest","storage","webRequestBlocking"],origins:["<all_urls>"]};
+chrome.permissions.contains(neededPerm,function(status){
+        if(status){
+            afterPermissions();
+        }  
+        else{
+            var explain = document.createElement('div'),
+                butt = document.createElement('button');
+            explain.innerText = chrome.i18n.getMessage('permission_explain');
+            butt.innerText = chrome.i18n.getMessage('permission_button');
+            explain.classList.add('show-always');
+            butt.classList.add('show-always');
+            butt.classList.add('as-link');
+            butt.type = 'button';
+            butt.onclick = function(){
+                chrome.permissions.request(neededPerm, function (granted) {
+                    if(granted){
+                        document.body.classList.remove('hide-all');
+                        document.removeChild(explain);
+                        document.removeChild(butt);
+                    }
+                    else{
+                        explain.innerText = chrome.i18n.getMessage('permission_without');
+                    }
+                });
+            }
+            document.body.classList.add('hide-all');
+            document.body.appendChild(explain);
+            document.body.appendChild(butt);
+        }
+})
+
+function afterPermissions(){
+    chrome.tabs.query(query, callbackSearch);
+}
 
 

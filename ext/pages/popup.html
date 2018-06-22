@@ -8,6 +8,22 @@
 		<script src="/js/conf.js"></script>
 		<link rel="stylesheet" href="/css/nouislider.min.css"></link>
         <style >
+			body{
+				min-width: 400px;
+			}
+			.show-always{
+				font-size: 20px;
+			}
+			.as-link{
+				border: 0;
+				background: none;
+				font-size: 16px;
+				text-decoration: underline;
+
+			}
+			body.hide-all *:not(.show-always){
+				display:none;
+			}
 			.main{
 				min-width: 400px;
 				min-height: 170px;

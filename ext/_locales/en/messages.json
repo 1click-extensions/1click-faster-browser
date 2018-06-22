@@ -4,8 +4,11 @@
   "advanced_features": {"message": "Advanced features" },
   "current_title": {"message": "Configuration for this site" },
   "global_title": {"message": "Configuration for all sites" },
+  "permission_explain": {"message": "To make your browsing faster, we need to some permissions" },
+  "permission_button": {"message": "Grant permissions" },
+  "permission_without": {"message": "Without permissions we can't make your browser faster" },
   "browser_action": {"message": "Config site" },
-  "ext_desc": {"message": "Make your browsing faster" },
+  "ext_desc": {"message": "Make your browsing faster in one click" },
   "ext_name": {"message": "1click Faster browser" }
 }
 

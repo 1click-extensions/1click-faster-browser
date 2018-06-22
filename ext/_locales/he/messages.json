@@ -4,8 +4,11 @@
   "advanced_features": {"message": "מצב מתקדם" },
   "current_title": {"message": "הגדרות לאתר זה" },
   "global_title": {"message": "הגדרות לכל האתרים" },
+  "permission_explain": {"message": "כדי לגרום לדפדפן שלך להיות מהיר יותר, אנו זקוקים להרשאות" },
+  "permission_button": {"message": "הענק הרשאות" },
+  "permission_without": {"message": "ללא הרשאות לא נוכל להפוך את הגלישה שלך למהירה יותר" },
   "browser_action": {"message": "הגדרות" },
-  "ext_desc": {"message": "Make your browsing faster" },
-  "ext_name": {"message": "1click Faster browser" }
+  "ext_desc": {"message": "הפוך את הגלישה למהירה יוצר" },
+  "ext_name": {"message": "גלישה מהירה יותר בקליק אחד" }
 }
 

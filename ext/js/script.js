@@ -3,6 +3,7 @@ var level;
 //console.log(domains, level, location.hostname);
 
 fasterTool = {
+    couldHaveBg : ["body","div","a","section","header","span","img","h1","h2","h3","h4","h5","h6","form","input","p","ul","li","nav","article","video","figure","footer","button"],
     observe: {
         start : function(){
             var targetNode = document,
@@ -39,7 +40,7 @@ fasterTool = {
                             var urlAttr = 'STYLE' == childElment.nodeName ? 'src' : 'href';
                             if(childElment[urlAttr]){
                                 if(!childElment.getAttribute('media')){
-                                    console.log(childElment,'childElment');
+                                    //console.log(childElment,'childElment');
                                     childElment.setAttribute('media','none');
                                     childElment.addEventListener('load', function(){
                                         //console.log(this);
@@ -60,7 +61,7 @@ fasterTool = {
         
         var styles = document.querySelectorAll('style,link[rel=stylesheet]'),
             found = false;
-        console.log(url);
+        //console.log(url);
         styles.forEach(function(style){
             //console.log(style,url);
             var urlAttr = 'STYLE' == style.nodeName ? 'src' : 'href';
@@ -98,16 +99,19 @@ fasterTool = {
         // });
         // //console.log('not found!!',fasterTool.lazyLoadUrls )
         // fasterTool.lazyLoadUrls = [];
-        console.log('fasterTool.lozad.observe();');
+        //console.log('fasterTool.lozad.observe();');
         fasterTool.lozad.observe('[one-click-lazy="lozad"]');
         fasterTool.lozad.observe('.lozad');
 
     },
     markImgAsCanceled :function(url){
         var images = document.querySelectorAll('img[src]');
+        var found = false;
         images.forEach(function(img){
             //console.log(img,url);
             if(img.src == url){
+                found = true;
+                //console.log('found!!!!', img);
                 fasterTool.switchSrcs(img,url, function(){
                     img.src = fasterTool.imgPlaceHolderImg;
                 });
@@ -121,7 +125,44 @@ fasterTool = {
                 //console.log(linkWrp,'linkWrp');
                 img.parentElement.insertBefore(linkWrp, img);
             }
-        })
+        });
+        if(!found){
+            //console.log('not found!!!!', url);
+            allDoms = document.querySelectorAll('*');
+            for(let xDom of allDoms){
+                var type = xDom.nodeName.toLowerCase();
+                if(fasterTool.couldHaveBg.indexOf(type) > -1){
+                    var sty = getComputedStyle(xDom);
+                    if(sty['background-image'] && 'none' != sty['background-image']){
+                        //console.log(xDom, sty['background-image'],url,  sty['background-image'].indexOf(url));
+                    }
+                    if(sty['background-image'] && sty['background-image'].indexOf(url) > -1){
+                        //console.log('in!!!!!!!!!!!!!!!!' ,xDom,sty['background-image'],url,  sty['background-image'].indexOf(url));
+                        if(['button','a', 'input'].indexOf(type) > -1){
+                            xDom.style['background-image'] = "url('" + url + "?oneClickFasterAllowBig=1')";
+                        }
+                        else{
+                            xDom.style['background-image'] = fasterTool.imgPlaceHolderImg;
+                            var link = fasterTool.getLinkElm('image');
+                            xDom.insertBefore(link,  xDom.firstChild);
+                            if(sty.position == 'static'){
+                                xDom.style.position = "relative";
+                            }
+                            link.addEventListener('click', function(e){
+                                //console.log(e)
+                                e.preventDefault();
+                                xDom.style['background-image'] = "url('" + url + "?oneClickFasterAllowBig=1')";
+                                //link.removeEventListener('click', clickEventCallback);
+                                xDom.removeChild(link);
+                                return false;
+                            });
+                        }
+                    }
+                }
+                
+                
+            }
+        }
     },
     markVideoAsCanceled :function(url){
         var videoSources = document.querySelectorAll('video source');
@@ -151,16 +192,26 @@ fasterTool = {
         after();
 
     },
+    getLinkHtml: function(type){
+        return '<a href="#" style="position: absolute!important;z-index: 9999999999999!important;top: 0px!important;background: #fff!important;color: #000!important;text-decoration:underline!important">' + 
+        'Show ' + type + '</a>';
+    },
+    getLinkElm: function(type){
+        var div = document.createElement('div');
+        div.innerHTML = '<a href="#" style="position: absolute!important;z-index: 9999999999999!important;top: 0px!important;background: #fff!important;color: #000!important;text-decoration:underline!important">' + 
+        'Show '+ type + '</a>';
+        return div.querySelector('a');
+    },
     bindClick: function(elm, type, callback){
         var div = document.createElement('div');
-        div.innerHTML = '<div style="position: relative!important;height: 0!important;overflow: visible!important;z-index: 9999999999999!important;">' + 
-                '<a href="#" style="position: absolute!important;z-index: 9999999999999!important;top: 0px!important;background: #fff!important;color: #000!important;text-decoration:underline!important">' + 
-                'Show '+ type + '</a></div>';
+        div.innerHTML = '<div style="position: relative!important;height: 0!important;overflow: visible!important;z-index: 9999999999999!important;">'
+        + fasterTool.getLinkHtml(type) + '</div>';
+        //console.log(div, div.querySelector('a'));
         var link = div.querySelector('a');
         
         
         var clickEventCallback = function(e){
-            console.log(e)
+            //console.log(e)
             e.preventDefault();
             callback();
             link.removeEventListener('click', clickEventCallback);
@@ -168,7 +219,7 @@ fasterTool = {
             return false;
         }
         link.addEventListener('click', clickEventCallback);
-        console.log(div, div.querySelector('div'))
+        //console.log(div, div.querySelector('div'))
         return div.querySelector('div');
     },
     fixUrlLazy : function(url){
@@ -186,11 +237,11 @@ fasterTool = {
     imgPlaceHolderImg: chrome.runtime.getURL('images/image-placeholder.png') ,
     videoPlaceHolderImg: chrome.runtime.getURL('images/video-placeholder.png') 
 }
-console.log('getCurrnetThrottleLevel',getCurrnetThrottleLevel);
+//console.log('getCurrnetThrottleLevel',getCurrnetThrottleLevel);
 getCurrnetThrottleLevel(location.hostname, function(levelFromData){
     level = levelFromData;
     if(level){
-        console.log(level, 'level');
+        //console.log(level, 'level');
         fasterTool.observe.start();
     }
 });

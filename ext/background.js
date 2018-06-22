@@ -177,14 +177,11 @@ var state_1 = __webpack_require__(11);
 /*init code end*/
 chrome.runtime.setUninstallURL("https://1ce.org");
 if (!localStorage.created) {
-    chrome.tabs.create({ url: "https://1ce.org" });
-    var manifest = chrome.runtime.getManifest();
-    localStorage.ver = manifest.version;
-    localStorage.created = 1;
-    localStorage.maxFileSizeNormal = 30 * 1000;
-    localStorage.maxFileSizeAdvanced = 50 * 1000;
-    localStorage.cacheNormal = 240 * 1000;
-    localStorage.cacheAdvanced = 480 * 1000;
+
+    localStorage.setItem('maxFileSizeNormal', localStorage.getItem('maxFileSizeNormal') ?localStorage.getItem('maxFileSizeNormal') : 30 * 1000);
+    localStorage.setItem('maxFileSizeAdvanced', localStorage.getItem('maxFileSizeAdvanced') ?localStorage.getItem('maxFileSizeAdvanced') : 50 * 1000);
+    localStorage.setItem('cacheNormal', localStorage.getItem('cacheNormal') ?localStorage.getItem('cacheNormal') : 240 * 1000);
+    localStorage.setItem('cacheAdvanced', localStorage.getItem('cacheAdvanced') ?localStorage.getItem('cacheAdvanced') : 480 * 1000);
     window.setGlobalThrottleLevel(1000);
 }
 /*init code start*/
@@ -323,14 +320,28 @@ function byPassonHeadersReceived(url) {
 //     },
 //   ["blocking","responseHeaders"]);
 function sizeCheckCallback(details) {
-    if ('GET' != details.method || !details.initiator || ['media', 'image', 'font'].indexOf(details.type) == -1 || byPassonHeadersReceived(details.url)) {
-        //console.log('not get -> ' + details.method);
+    if ('GET' != details.method){
+        return { cancel: false };
+
+    }
+    // else if(!details.initiator){
+    //     console.log('not initiator', details);
+    //     return { cancel: false };
+    // } 
+    else if(['media', 'image', 'font'].indexOf(details.type) == -1){
+        //console.log('not type');
         return { cancel: false };
     }
-    var normalizedUrl = url_1.parseURL(details.initiator), fileLength = 0;
+    else if(byPassonHeadersReceived(details.url)) {
+        //console.log('byPassonHeadersReceived');
+        return { cancel: false };
+    }
+    var normalizedUrl = url_1.parseURL(details.initiator ? details.initiator : details.url), fileLength = 0;
     if (domains[normalizedUrl.uri] === 0) {
+        //console.log('not normalizedUrl -> ' + details.method);
         return { cancel: false };
     }
+    //console.log('got to here!!!!', details.responseHeaders);
     if (details.responseHeaders) {
         for (var i = 0; i < details.responseHeaders.length; i++) {
             var part = details.responseHeaders[i];
@@ -348,14 +359,15 @@ function sizeCheckCallback(details) {
         fileMax = globalLevel == 2000 ? localStorage.maxFileSizeAdvanced : localStorage.maxFileSizeNormal;
     }
     var cancelRequest = fileLength > fileMax;
+    //console.log(details.type, details.url, fileLength /1000);
     if (cancelRequest) {
-        //console.log(details.type, details.url, fileLength /1000);
         sendAborted(details, 'big');
     }
     return { cancel: cancelRequest };
 }
 /* cache part */
 chrome.webRequest.onHeadersReceived.addListener(function (obj) {
+    //console.log(obj);
     var sizeCheck = sizeCheckCallback(obj);
     if (sizeCheck.cancel) {
         return sizeCheck;
