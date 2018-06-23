@@ -1,3 +1,4 @@
+
 function extractHostname(url) {
     var hostname;
     //find & remove protocol (http, ftp, etc.) and get hostname
@@ -58,6 +59,7 @@ var query = { active: true, currentWindow: true },
             globalSliderDiv = document.getElementById('global');
        
         getCurrnetThrottleLevel(domain, function(currentThrottleLevel){
+            //console.log(domain, currentThrottleLevel);
             currentSlider =  noUiSlider.create(currentSliderDiv, {
                 start: [ currentThrottleLevel ],
                 step: 1000,
@@ -103,7 +105,7 @@ document.getElementById('global-normal').innerText = chrome.i18n.getMessage('nor
 document.getElementById('global-advanced').innerText = chrome.i18n.getMessage('advanced_features');
 document.getElementById('global-title').innerText = chrome.i18n.getMessage('global_title');
 document.getElementById('current-title').innerText = chrome.i18n.getMessage('current_title');
-var neededPerm = {permissions: ["tabs","webRequest","storage","webRequestBlocking"],origins:["<all_urls>"]};
+var neededPerm = {permissions: ["tabs","webRequest","webRequestBlocking"],origins:["<all_urls>"]};
 chrome.permissions.contains(neededPerm,function(status){
         if(status){
             afterPermissions();
@@ -123,6 +125,9 @@ chrome.permissions.contains(neededPerm,function(status){
                         document.body.classList.remove('hide-all');
                         document.removeChild(explain);
                         document.removeChild(butt);
+                        setTimeout(function(){
+                            
+                        },100000)
                     }
                     else{
                         explain.innerText = chrome.i18n.getMessage('permission_without');

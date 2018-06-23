@@ -182,7 +182,7 @@ if (!localStorage.created) {
     localStorage.setItem('maxFileSizeAdvanced', localStorage.getItem('maxFileSizeAdvanced') ?localStorage.getItem('maxFileSizeAdvanced') : 50 * 1000);
     localStorage.setItem('cacheNormal', localStorage.getItem('cacheNormal') ?localStorage.getItem('cacheNormal') : 240 * 1000);
     localStorage.setItem('cacheAdvanced', localStorage.getItem('cacheAdvanced') ?localStorage.getItem('cacheAdvanced') : 480 * 1000);
-    window.setGlobalThrottleLevel(1000);
+    localStorage.setItem('globalThrottleLevel',1000);
 }
 /*init code start*/
 // styleSheetsAdmin  = {
@@ -264,20 +264,28 @@ if (!localStorage.created) {
     urls: ["<all_urls>"]
    },
    ["responseHeaders"]);*/
-var domains = null, globalLevel = null;
-window.getDomains(function (data) {
-    domains = data;
-    console.log(domains, 'domains');
-});
-window.getGlobalThrottleLevel(function (data) {
-    globalLevel = data;
-});
+var domains = getDomains(), globalLevel = null;
+// window.getDomains(function (data) {
+//     domains = data;
+//     console.log(domains, 'domains');
+// });
+// window.getGlobalThrottleLevel(function (data) {
+//     globalLevel = data;
+// });
+
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    if (request.action && 'domainsUpdated' == request.action) {
-        window.getDomains(function (data) {
-            domains = data;
-            console.log(domains, 'domains');
-        });
+    if (request.action && 'getDomains' == request.action) {
+       var domains = getDomains();
+       sendResponse(domains);
+    }
+    if (request.action && 'domainUpdated' == request.action) {
+        setDomain(request.domain, request.level)
+    }
+    if (request.action && 'getGlobalThrottleLevel' == request.action) {
+        sendResponse(request.domain, request.level)
+    }
+    if (request.action && 'setGlobalThrottleLevel' == request.action) {
+        setGlobalThrottleLevel(request.value)
     }
 });
 function sendAborted(details, addToEvent) {
@@ -286,6 +294,7 @@ function sendAborted(details, addToEvent) {
     chrome.tabs.sendMessage(details.tabId, {
         action: 'canceled',
         type: details.type + (addToEvent ? '-' + addToEvent : ''),
+        exacType: details.exacType,
         url: details.url
     });
     //});
@@ -336,7 +345,7 @@ function sizeCheckCallback(details) {
         //console.log('byPassonHeadersReceived');
         return { cancel: false };
     }
-    var normalizedUrl = url_1.parseURL(details.initiator ? details.initiator : details.url), fileLength = 0;
+    var normalizedUrl = url_1.parseURL(details.initiator ? details.initiator : details.url), fileLength = 0, fileType = '';
     if (domains[normalizedUrl.uri] === 0) {
         //console.log('not normalizedUrl -> ' + details.method);
         return { cancel: false };
@@ -347,6 +356,9 @@ function sizeCheckCallback(details) {
             var part = details.responseHeaders[i];
             if ('content-length' == part.name.toLowerCase()) {
                 fileLength = parseInt(part.value);
+            }
+            else if ('content-type' == part.name.toLowerCase()) {
+                fileType = part.value;
             }
         }
     }
@@ -361,6 +373,8 @@ function sizeCheckCallback(details) {
     var cancelRequest = fileLength > fileMax;
     //console.log(details.type, details.url, fileLength /1000);
     if (cancelRequest) {
+        details.exacType = fileType;
+        //console.log(details)
         sendAborted(details, 'big');
     }
     return { cancel: cancelRequest };

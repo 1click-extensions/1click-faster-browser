@@ -17,7 +17,7 @@
         {
           "all_frames": true, 
           "js": [
-            "js/conf.js",
+            "js/conf-client.js",
             "js/lozad.js",
             "js/script.js"
           ], 

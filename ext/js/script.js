@@ -164,24 +164,26 @@ fasterTool = {
             }
         }
     },
-    markVideoAsCanceled :function(url){
-        var videoSources = document.querySelectorAll('video source');
-        videoSources.forEach(function(videoSource){
-            //console.log(img,url);
-            if(videoSource.src == url){
-                fasterTool.switchSrcs(videoSource,url, function(){
-                    videoSource.parentElement.style['background'] = 'url("' + fasterTool.videoPlaceHolderImg + '") center no-repeat';
+    markMediaAsCanceled :function(type, url){
+        var mediaSources = document.querySelectorAll(type + ', source');
+        //console.log(mediaSources);
+        mediaSources.forEach(function(mediaSource){
+            //console.log(mediaSource.src);
+            if(mediaSource.src == url){
+                var wrpElm = mediaSource.nodeName == 'source' ?  mediaSource.parentElement :  mediaSource;
+                fasterTool.switchSrcs(mediaSource,url, function(){
+                    wrpElm.style['background'] = 'url("' + fasterTool.videoPlaceHolderImg + '") center no-repeat';
                 });
-                var linkWrp = fasterTool.bindClick(videoSource, 'video', function(){
-                    var fixedSrc =  videoSource.getAttribute('one-click-src');
+                var linkWrp = fasterTool.bindClick(mediaSource, type, function(){
+                    var fixedSrc =  mediaSource.getAttribute('one-click-src');
                     if(fixedSrc){
-                        videoSource.src = fixedSrc;
-                        videoSource.parentElement.load();
-                        videoSource.parentElement.style['background'] = '';
+                        mediaSource.src = fixedSrc;
+                        wrpElm.load();
+                        wrpElm.style['background'] = '';
                     }
-                    videoSource.removeAttribute('one-click-src');
+                    mediaSource.removeAttribute('one-click-src');
                 });
-                videoSource.parentElement.parentElement.insertBefore(linkWrp, videoSource.parentElement);
+                wrpElm.parentElement.insertBefore(linkWrp, wrpElm);
             }
         });
     },
@@ -194,12 +196,12 @@ fasterTool = {
     },
     getLinkHtml: function(type){
         return '<a href="#" style="position: absolute!important;z-index: 9999999999999!important;top: 0px!important;background: #fff!important;color: #000!important;text-decoration:underline!important">' + 
-        'Show ' + type + '</a>';
+        'Load ' + type + '</a>';
     },
     getLinkElm: function(type){
         var div = document.createElement('div');
         div.innerHTML = '<a href="#" style="position: absolute!important;z-index: 9999999999999!important;top: 0px!important;background: #fff!important;color: #000!important;text-decoration:underline!important">' + 
-        'Show '+ type + '</a>';
+        'Load '+ type + '</a>';
         return div.querySelector('a');
     },
     bindClick: function(elm, type, callback){
@@ -252,7 +254,7 @@ chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
       switch(request.action){
           case 'canceled':
-          //console.log(request.type);
+          //console.log(request);
           switch(request.type){
             case 'image':
                 //fasterTool.markImgAsLazyLoad(request.url);
@@ -261,7 +263,10 @@ chrome.runtime.onMessage.addListener(
               fasterTool.markImgAsCanceled(request.url);
               break;
             case 'media-big':
-                fasterTool.markVideoAsCanceled(request.url);
+                var exacType = request.exacType ? request.exacType : 'video';
+                exacType = exacType.split('/')[0];
+                //console.log(exacType, request.url);
+                fasterTool.markMediaAsCanceled(exacType, request.url);
                 break;
             case 'stylesheet':
                 fasterTool.addLazyAttr(request.url);
