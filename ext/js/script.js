@@ -18,45 +18,69 @@ if('undefined' == typeof fasterTool){
                 // Later, you can stop observing
                 //observer.disconnect();
             },
+            watchImgs : function(childElement, print){
+                childElement.setAttribute('chookoo', new Date().getTime());
+                childElement.chookoo = new Date().getTime();
+                if(print){
+                    console.log(childElement)
+                }
+                if( (childElement.src && !/data:/.test(src)) || childElement.srcset){
+                    childElement.src = fasterTool.fixUrl(childElement.src, '1clickFasterLevel', level);
+                    childElement.srcset = fasterTool.fixSrcset(childElement.src, '1clickFasterLevel', level);
+                    //console.log(childElement.src, childElement, 'childElement.src, childElement');
+                    if( 2000 == level){
+                        var src = childElement.src,
+                            srcset = childElement.srcset;
+                        //console.log('srcset srcset ', srcset, fasterTool.fixUrlLazy(srcset));
+                        if(!childElement.getAttribute('data-src')){
+                            childElement.setAttribute('data-src', fasterTool.fixUrlLazy(src));
+                            //childElement.setAttribute('data-srcset', fasterTool.fixSrcsetLazy(src));
+                        }
+                        childElement.setAttribute('one-click-lazy', 'lozad');
+                        childElement.removeAttribute('src');
+                        childElement.removeAttribute('srcset');
+                        childElement.src = fasterTool.imgPlaceHolderImg;
+                        //childElement.srcset = fasterTool.imgPlaceHolderImg;
+                        //console.log(childElement,childElement.getAttribute('one-click-lazy'));
+                        fasterTool.startTimeout();
+                        childElement.classList.add('lozad');
+                        childElement.addEventListener('click', function(){
+                            fasterTool.lozad.triggerLoad(childElement);
+                        });
+                    }
+                }
+            },
             callback : function(mutationsList) {
                 for(var mutation of mutationsList) {
                     if (mutation.type == 'childList') {
-                        mutation.addedNodes.forEach(function(childElment){
-                            if('IMG' == childElment.nodeName && 2000 == level){
-                                if(childElment.src && !/data:/.test(src)){
-                                    var src = childElment.src,
-                                        srcset = childElment.srcset;
-                                    //console.log('srcset srcset ', srcset, fasterTool.fixUrlLazy(srcset));
-                                    childElment.setAttribute('data-src', fasterTool.fixUrlLazy(src));
-                                    if(srcset && srcset.indexOf('chrome-extension://' == -1)){
-                                        //childElment.setAttribute('data-srcset', fasterTool.fixSrcsetLazy(src));
-                                    }
-                                    childElment.setAttribute('one-click-lazy', 'lozad');
-                                    childElment.removeAttribute('src');
-                                    childElment.removeAttribute('srcset');
-                                    childElment.src = fasterTool.imgPlaceHolderImg;
-                                    //childElment.srcset = fasterTool.imgPlaceHolderImg;
-                                    //console.log(childElment,childElment.getAttribute('one-click-lazy'));
-                                    fasterTool.startTimeout();
-                                    childElment.classList.add('lozad');
-                                    childElment.addEventListener('click', function(){
-                                        fasterTool.lozad.triggerLoad(childElment);
-                                    });
-                                }
+                        mutation.addedNodes.forEach(function(childElement){
+                            if('IMG' == childElement.nodeName ){
+                                fasterTool.observe.watchImgs(childElement);
                             }
-                            else if('STYLE' == childElment.nodeName || ("LINK"  == childElment.nodeName && 'stylesheet' == childElment.getAttribute('rel'))){
-                                var urlAttr = 'STYLE' == childElment.nodeName ? 'src' : 'href';
-                                if(childElment[urlAttr]){
-                                    if(!childElment.getAttribute('media')){
-                                        //console.log(childElment,'childElment');
-                                        childElment.setAttribute('media','none');
-                                        childElment.addEventListener('load', function(){
+                            else if('STYLE' == childElement.nodeName || ("LINK"  == childElement.nodeName && 'stylesheet' == childElement.getAttribute('rel'))){
+                                var urlAttr = 'STYLE' == childElement.nodeName ? 'src' : 'href';
+                                if(childElement[urlAttr]){
+                                    if(!childElement.getAttribute('media')){
+                                        //console.log(childElement,'childElement');
+                                        childElement.setAttribute('media','none');
+                                        childElement.addEventListener('load', function(){
                                             //console.log(this);
                                             this.setAttribute('media','all');
                                         });
                                     }
                                     // style[urlAttr] = fasterTool.fixUrlLazy(style[urlAttr]);
                                     // found = true;
+                                }
+                            }
+                            else{
+                                //console.log(childElement, childElement.getElementsByTagName);
+                                if(childElement.getElementsByTagName){
+
+                                    var imgs = childElement.getElementsByTagName('img');
+                                    //console.log(imgs.length,'imgs.length');
+                                    for(let img of imgs){
+                                        fasterTool.observe.watchImgs(img);
+                                    }
                                 }
                             }
                         });
@@ -120,26 +144,36 @@ if('undefined' == typeof fasterTool){
                 if(img.src == url || (img.srcset && img.srcset.indexOf(url) > -1)){
                     found = true;
                     //console.log('found!!!!', img);
+                    
                     fasterTool.switchSrcs(img,url, function(){
-                        img.src = fasterTool.imgPlaceHolderImg;
-                        if(img.srcset){
-                            img.srcset = fasterTool.imgPlaceHolderImg;
-                        } 
-                    });
-                    var linkWrp = fasterTool.bindClick(img, 'image', function(){
-                        var fixedSrc =  img.getAttribute('one-click-src'),
-                            fixedSrcset = img.getAttribute('one-click-srcset');
-                        if(fixedSrc){
-                            img.src = fixedSrc;
-                            img.removeAttribute('one-click-src');
+                        if(level ===0){
+                            img.src = img.getAttribute('one-click-src');
+                            img.srcset = img.getAttribute('one-click-srcset');
                         }
-                        if(fixedSrcset){
-                            img.srcset = fixedSrcset;
-                            img.removeAttribute('one-click-srcset');
+                        else{   
+                            img.src = fasterTool.imgPlaceHolderImg;
+                            if(img.srcset){
+                                img.srcset = fasterTool.imgPlaceHolderImg;
+                            }
                         }
+
                     });
-                    //console.log(linkWrp,'linkWrp');
-                    img.parentElement.insertBefore(linkWrp, img);
+                    if(level){
+                        var linkWrp = fasterTool.bindClick(img, 'image', function(){
+                            var fixedSrc =  img.getAttribute('one-click-src'),
+                                fixedSrcset = img.getAttribute('one-click-srcset');
+                            if(fixedSrc){
+                                img.src = fixedSrc;
+                                img.removeAttribute('one-click-src');
+                            }
+                            if(fixedSrcset){
+                                img.srcset = fixedSrcset;
+                                img.removeAttribute('one-click-srcset');
+                            }
+                        });
+                        //console.log(linkWrp,'linkWrp');
+                        img.parentElement.insertBefore(linkWrp, img);
+                    }
                 }
             });
             if(!found){
@@ -167,9 +201,10 @@ if('undefined' == typeof fasterTool){
                                 link.addEventListener('click', function(e){
                                     //console.log(e)
                                     e.preventDefault();
-                                    xDom.style['background-image'] = "url('" + url + "?oneClickFasterAllowBig=1')";
+                                    //console.log(this.parentElement, this)
+                                    this.parentElement.style['background-image'] = "url('" + url + "?oneClickFasterAllowBig=1')";
                                     //link.removeEventListener('click', clickEventCallback);
-                                    xDom.removeChild(link);
+                                    this.parentElement.removeChild(this);
                                     return false;
                                 });
                             }
@@ -248,18 +283,19 @@ if('undefined' == typeof fasterTool){
             return fasterTool.fixUrl(url, 'oneClickFasterIsLazy');
         },
         fixSrcsetBig : function(url){
-            return fasterTool.fixSrcset(url);
+            return fasterTool.fixSrcset(url, 'oneClickFasterAllowBig');
         },
         fixSrcsetLazy : function(url){
-            return fasterTool.fixSrcset(url, 'lazy');
+            return fasterTool.fixSrcset(url, 'oneClickFasterIsLazy');
         },
-        fixSrcset : function(url, fixType){
+        fixSrcset : function(url, fixType, value){
+            value = 'undefined' != typeof value ? value : '1';
             urlSplitted = url.split(',');
             var newUrl = [];
             for(let urlPart of urlSplitted){
                 urlPartSplitted = urlPart.trim().split(' ');
-                urlPartSplitted[0] = fixType == 'lazy' ? fasterTool.fixUrlLazy(urlPartSplitted[0]) : fasterTool.fixUrlBig(urlPartSplitted[0]);
-                newUrl.push(urlPartSplitted.join( ' '));
+                urlPartSplitted[0] = fasterTool.fixUrl(urlPartSplitted[0], fixType, value);
+                newUrl.push(urlPartSplitted.join( ' ' ));
             }
 
             return newUrl.join(',');
@@ -267,9 +303,10 @@ if('undefined' == typeof fasterTool){
         fixUrlBig : function(url){
             return fasterTool.fixUrl(url, 'oneClickFasterAllowBig');
         },
-        fixUrl : function(url, add){
+        fixUrl : function(url, add, addValue){
+            addValue = 'undefined' != typeof addValue ? addValue : '1'
             var hasQuestionMark = url.indexOf('?') > -1;
-            return url + (!hasQuestionMark ? '?' : '&') + add + '=1'
+            return url + (!hasQuestionMark ? '?' : '&') + add + '=' + addValue;
         },
         lazyLoadUrls:[],
         lozad: 'undefined' != typeof lozad ? lozad() : null,
@@ -279,7 +316,7 @@ if('undefined' == typeof fasterTool){
         //console.log('getCurrnetThrottleLevel',getCurrnetThrottleLevel);
         getCurrnetThrottleLevel(location.hostname, function(levelFromData){
         level = levelFromData;
-        if(level){
+        if(1||level){
             //console.log(level, 'level');
             fasterTool.observe.start();
         }

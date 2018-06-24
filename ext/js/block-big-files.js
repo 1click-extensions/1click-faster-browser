@@ -1,5 +1,24 @@
 /* 1click part -lazyload */
 /*init code end*/
+
+function getQueryVariable(url) {
+    var query = url.split('?');
+    if(query.length>1){
+        var vars = query[1].split('&'),
+            args = {};
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split('=');
+            args[pair[0]]  = decodeURIComponent(pair[1]);
+            // if (decodeURIComponent(pair[0]) == variable) {
+            // }
+        }
+        return args;
+    }
+    else{
+        return {};
+    }
+    //console.log('Query variable %s not found', variable);
+}
 parseURL = function (url) {
     var splitted = url.split('://');
     var schema = splitted[0], path = splitted[1];
@@ -8,6 +27,7 @@ parseURL = function (url) {
         uri: path.replace(/\?.+$/, ''),
         isExtension: false,
         host: '',
+        queryParams : getQueryVariable(url),
         library: ''
     };
     result.isExtension = result.schema === 'chrome-extension';
@@ -25,6 +45,12 @@ if (!localStorage.getItem('globalThrottleLevel')) {
     localStorage.setItem('cacheAdvanced', localStorage.getItem('cacheAdvanced') ?localStorage.getItem('cacheAdvanced') : 480 * 1000);
     localStorage.setItem('globalThrottleLevel',1000);
 }
+var neededPerm = {permissions: ["tabs","webRequest","webRequestBlocking"],origins:["<all_urls>"]};
+chrome.permissions.contains(neededPerm,function(status){
+        if(status){
+            runAfterPermissions();
+        }  
+});
 
 var domains = getDomains(), globalLevel = null;
 
@@ -43,7 +69,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         sendResponse(getGlobalThrottleLevel());
     }
     if (request.action && 'setGlobalThrottleLevel' == request.action) {
-        console.log(request.value)
+        //console.log(request.value)
         setGlobalThrottleLevel(request.value)
     }
 });
@@ -83,9 +109,19 @@ function sizeCheckCallback(details) {
         //console.log('byPassonHeadersReceived');
         return { cancel: false };
     }
-    var normalizedUrl = parseURL(details.initiator ? details.initiator : details.url), fileLength = 0, fileType = '';
-    if (domains[normalizedUrl.uri] === 0) {
-        //console.log('not normalizedUrl -> ' + details.method);
+    var normalizedUrl = parseURL(details.initiator ? details.initiator : details.url), 
+        fileLength = 0, 
+        fileType = '',
+        requestLevel = normalizedUrl && normalizedUrl.queryParams['1clickFasterLevel'] ? normalizedUrl.queryParams['1clickFasterLevel'] : 
+            ( 'undefined' != typeof domains[normalizedUrl.host]  ? domains[normalizedUrl.host] : getGlobalThrottleLevel());
+    requestLevel = Number(requestLevel);
+    // if(normalizedUrl.queryParams && normalizedUrl.queryParams){
+    //     console.log('normalizedUrl.queryParams',normalizedUrl, requestLevel);
+    // }
+    //console.log('details.initiator', details.initiator);
+    
+    if (requestLevel === 0) {
+        //console.log('not normalizedUrl -> ' , normalizedUrl, details.initiator);
         return { cancel: false };
     }
     //console.log('got to here!!!!', details.responseHeaders);
@@ -102,14 +138,14 @@ function sizeCheckCallback(details) {
     }
     //console.log(fileLength, 'fileLength');
     var fileMax = 0;
-    if (domains[normalizedUrl.uri]) {
-        fileMax = domains[normalizedUrl.uri] == 2000 ? localStorage.maxFileSizeAdvanced : localStorage.maxFileSizeNormal;
+    if (requestLevel) {
+        fileMax = requestLevel == 2000 ? localStorage.maxFileSizeAdvanced : localStorage.maxFileSizeNormal;
     }
     else {
         fileMax = globalLevel == 2000 ? localStorage.maxFileSizeAdvanced : localStorage.maxFileSizeNormal;
     }
     var cancelRequest = fileLength > fileMax;
-    console.log(details.type, details.url, fileLength /1000, fileMax);
+    //console.log(details.type, details.url, fileLength /1000, fileMax);
     if (cancelRequest) {
         details.exacType = fileType;
         //console.log(details)
@@ -170,8 +206,8 @@ function injectToTab(tab){
     if(tab.url && /https?:\/\//.test(tab.url)){
         chrome.tabs.executeScript(tab.id, {file:"js/conf-client.js", runAt: "document_start",allFrames:true});
         var normalizedUrl = parseURL(tab.url);
-        console.log(normalizedUrl.host, domains[normalizedUrl.uri])
-        if (domains[normalizedUrl.host] == 2000) {
+        //console.log(normalizedUrl.host, domains[normalizedUrl.uri])
+        if ( ('undefined' != domains[normalizedUrl.host] && domains[normalizedUrl.host] == 2000 ) || getGlobalThrottleLevel()==2000) {
             chrome.tabs.executeScript(tab.id, {file:"js/lozad.js",runAt: "document_start"});
         }
         chrome.tabs.executeScript(tab.id, {file:"js/script.js", runAt: "document_start"});

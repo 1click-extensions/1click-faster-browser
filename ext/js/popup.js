@@ -130,6 +130,7 @@ chrome.permissions.contains(neededPerm,function(status){
                         document.body.classList.remove('hide-all');
                         document.body.removeChild(wrapper);
                         chrome.runtime.sendMessage({action: 'permissionsSet'});
+                        afterPermissions();
                         setTimeout(function(){
                             chrome.runtime.sendMessage({action: 'injectJs'});
                         },100000)
