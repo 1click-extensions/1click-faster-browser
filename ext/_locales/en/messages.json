@@ -1,5 +1,6 @@
 {
   "disable_in_this_site": {"message": "Disable in this site" },
+  "disable_in_all_site": {"message": "Disable in all sites" },
   "normal_features": {"message": "Normal features" },
   "advanced_features": {"message": "Advanced features" },
   "current_title": {"message": "Configuration for this site" },

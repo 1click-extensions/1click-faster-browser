@@ -76,11 +76,12 @@ var query = { active: true, currentWindow: true },
         });
 
         getGlobalThrottleLevel(function(globalThrottleLevel){
+            console.log('globalThrottleLevel',globalThrottleLevel);
             globalSlider = noUiSlider.create( globalSliderDiv, {
                 start: [ globalThrottleLevel ],
                 step: 1000,
                 range: {
-                    'min': [  1000 ],
+                    'min': [  0 ],
                     'max': [ 2000 ]
                 }
             });
@@ -101,6 +102,7 @@ var query = { active: true, currentWindow: true },
 document.getElementById('current-disable').innerText = chrome.i18n.getMessage('disable_in_this_site');
 document.getElementById('current-normal').innerText = chrome.i18n.getMessage('normal_features');
 document.getElementById('current-advanced').innerText = chrome.i18n.getMessage('advanced_features');
+document.getElementById('global-disable').innerText = chrome.i18n.getMessage('disable_on_all_site');
 document.getElementById('global-normal').innerText = chrome.i18n.getMessage('normal_features');
 document.getElementById('global-advanced').innerText = chrome.i18n.getMessage('advanced_features');
 document.getElementById('global-title').innerText = chrome.i18n.getMessage('global_title');
@@ -119,14 +121,17 @@ chrome.permissions.contains(neededPerm,function(status){
             butt.classList.add('show-always');
             butt.classList.add('as-link');
             butt.type = 'button';
+            var wrapper = document.createElement('div');
+            wrapper.classList.add('show-always');
+            wrapper.classList.add('wrapper');
             butt.onclick = function(){
                 chrome.permissions.request(neededPerm, function (granted) {
                     if(granted){
                         document.body.classList.remove('hide-all');
-                        document.removeChild(explain);
-                        document.removeChild(butt);
+                        document.body.removeChild(wrapper);
+                        chrome.runtime.sendMessage({action: 'permissionsSet'});
                         setTimeout(function(){
-                            
+                            chrome.runtime.sendMessage({action: 'injectJs'});
                         },100000)
                     }
                     else{
@@ -135,8 +140,10 @@ chrome.permissions.contains(neededPerm,function(status){
                 });
             }
             document.body.classList.add('hide-all');
-            document.body.appendChild(explain);
-            document.body.appendChild(butt);
+            
+            document.body.appendChild(wrapper);
+            wrapper.appendChild(explain);
+            wrapper.appendChild(butt);
         }
 })
 

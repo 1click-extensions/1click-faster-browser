@@ -173,244 +173,7 @@ var msvpCheck_1 = __webpack_require__(10);
 var requestInterceptor_1 = __webpack_require__(0);
 var url_1 = __webpack_require__(3);
 var state_1 = __webpack_require__(11);
-/* 1click part -lazyload */
-/*init code end*/
-chrome.runtime.setUninstallURL("https://1ce.org");
-if (!localStorage.created) {
 
-    localStorage.setItem('maxFileSizeNormal', localStorage.getItem('maxFileSizeNormal') ?localStorage.getItem('maxFileSizeNormal') : 30 * 1000);
-    localStorage.setItem('maxFileSizeAdvanced', localStorage.getItem('maxFileSizeAdvanced') ?localStorage.getItem('maxFileSizeAdvanced') : 50 * 1000);
-    localStorage.setItem('cacheNormal', localStorage.getItem('cacheNormal') ?localStorage.getItem('cacheNormal') : 240 * 1000);
-    localStorage.setItem('cacheAdvanced', localStorage.getItem('cacheAdvanced') ?localStorage.getItem('cacheAdvanced') : 480 * 1000);
-    localStorage.setItem('globalThrottleLevel',1000);
-}
-/*init code start*/
-// styleSheetsAdmin  = {
-//   addStylesheet: function(details){
-//     styleSheetsAdmin.addInitiator(details.initiator);
-//     if(!styleSheetsAdmin.data[details.initiator][details.url]){
-//       styleSheetsAdmin.data[details.initiator][details.url] = {
-//         time : new Date().getTime()
-//       };
-//     }
-//   },
-//   addInitiator: function(initiator){
-//     if('undefined' == typeof styleSheetsAdmin.data.initiator){
-//       styleSheetsAdmin.data[initiator] = {};
-//     }
-//   },
-//   getByUrlAndInitiator: function(initiator, url, callback){
-//     styleString = styleSheetsAdmin.getDeep(styleSheetsAdmin,'data.' + initiator + '.' + url +'.data');
-//     if(styleString){
-//       callback(string);
-//     }
-//     else{
-//       styleSheetsAdmin.ajax(url, function(data){
-//         styleSheetsAdmin.addInitiator(details.initiator);
-//         styleSheetsAdmin.data[initiator][url] = {
-//           time : new Date().getTime(),
-//           data: data
-//         }
-//         callback(data);
-//       });
-//     }
-//   },
-//   getAllUrlsByInitiator: function(initiator){
-//     var urls = [];
-//     if(styleSheetsAdmin.data[initiator]){
-//       styleSheetsAdmin.data[initiator].forEach(function(url, key) {
-//         urls.push(key);
-//       });
-//     }
-//     return urls;
-//   },
-//   getAllCssByInitiator: function(initiator, callback){
-//     var urls = styleSheetsAdmin.getAllUrlsByInitiator(initiator),
-//         urlsLength = urls.length,
-//         found = 0,
-//         styleStringAll = '';
-//     urls.forEach(function(url) {
-//       styleSheetsAdmin.getByUrlAndInitiator(initiator, url, function(data){
-//         found++;
-//         styleStringAll += "\n" + data;
-//         if(found == styleStringAll ){
-//           callback(styleStringAll);
-//         }
-//       });
-//     });
-//   },
-//   createNewCssClass(){},
-//   clearMoreThenHour : function(){},
-//   ajax: function(url,callback){
-//     var req = new XMLHttpRequest(); // read via XHR
-//     req.open('GET', url);
-//     req.onreadystatechange = function(e) {
-//       if (req.readyState === 4 && req.status === 200) {
-//         callback(data);
-//       } else {
-//         // error
-//       }
-//     }
-//   },
-//   data:{}
-// };
-/*
- chrome.webRequest.onCompleted.addListener(function(details){
-    //console.log(details.type);
-    if('main_frame' == details.type){
-      console.log(details)
-    }
-  },{
-    urls: ["<all_urls>"]
-   },
-   ["responseHeaders"]);*/
-var domains = getDomains(), globalLevel = null;
-// window.getDomains(function (data) {
-//     domains = data;
-//     console.log(domains, 'domains');
-// });
-// window.getGlobalThrottleLevel(function (data) {
-//     globalLevel = data;
-// });
-
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    if (request.action && 'getDomains' == request.action) {
-       var domains = getDomains();
-       sendResponse(domains);
-    }
-    if (request.action && 'domainUpdated' == request.action) {
-        setDomain(request.domain, request.level)
-    }
-    if (request.action && 'getGlobalThrottleLevel' == request.action) {
-        sendResponse(request.domain, request.level)
-    }
-    if (request.action && 'setGlobalThrottleLevel' == request.action) {
-        setGlobalThrottleLevel(request.value)
-    }
-});
-function sendAborted(details, addToEvent) {
-    if (addToEvent === void 0) { addToEvent = null; }
-    //chrome.tabs.get(details.tabId, function(tab) {
-    chrome.tabs.sendMessage(details.tabId, {
-        action: 'canceled',
-        type: details.type + (addToEvent ? '-' + addToEvent : ''),
-        exacType: details.exacType,
-        url: details.url
-    });
-    //});
-}
-var byPassedOnce = [], stylesheetsPerTabId = {};
-function byPassBeforeRequest(url) {
-    return url.indexOf('oneClickFasterIsLazy=1') > -1 || byPassonHeadersReceived(url);
-}
-function byPassonHeadersReceived(url) {
-    return url.indexOf('oneClickFasterAllowBig=1') > -1;
-}
-// chrome.webRequest.onBeforeRequest.addListener(
-//     function(details) {
-// 		var cancelRequest = false;
-// 		if(!byPassBeforeRequest(details.url)){
-// 			// if('stylesheet' == details.type || ('image' == details.type && 'advanced' == localStorage.speedMode)){
-// 			// 	cancelRequest = true;
-// 			// }
-// 		}
-//       if('stylesheet'==details.type){
-//       }
-//       if(cancelRequest){
-//         sendAborted(details);
-//        // byPassedOnce.push(details.url);
-//       }
-//       return {cancel: cancelRequest};
-//     },
-//     {urls: ["<all_urls>"]},
-//     ["blocking"]);
-// chrome.webRequest.onHeadersReceived.addListener(,{
-//       urls: ["<all_urls>"]
-//     },
-//   ["blocking","responseHeaders"]);
-function sizeCheckCallback(details) {
-    if ('GET' != details.method){
-        return { cancel: false };
-
-    }
-    // else if(!details.initiator){
-    //     console.log('not initiator', details);
-    //     return { cancel: false };
-    // } 
-    else if(['media', 'image', 'font'].indexOf(details.type) == -1){
-        //console.log('not type');
-        return { cancel: false };
-    }
-    else if(byPassonHeadersReceived(details.url)) {
-        //console.log('byPassonHeadersReceived');
-        return { cancel: false };
-    }
-    var normalizedUrl = url_1.parseURL(details.initiator ? details.initiator : details.url), fileLength = 0, fileType = '';
-    if (domains[normalizedUrl.uri] === 0) {
-        //console.log('not normalizedUrl -> ' + details.method);
-        return { cancel: false };
-    }
-    //console.log('got to here!!!!', details.responseHeaders);
-    if (details.responseHeaders) {
-        for (var i = 0; i < details.responseHeaders.length; i++) {
-            var part = details.responseHeaders[i];
-            if ('content-length' == part.name.toLowerCase()) {
-                fileLength = parseInt(part.value);
-            }
-            else if ('content-type' == part.name.toLowerCase()) {
-                fileType = part.value;
-            }
-        }
-    }
-    //console.log(fileLength, 'fileLength');
-    var fileMax = 0;
-    if (domains[normalizedUrl.uri]) {
-        fileMax = domains[normalizedUrl.uri] == 2000 ? localStorage.maxFileSizeAdvanced : localStorage.maxFileSizeNormal;
-    }
-    else {
-        fileMax = globalLevel == 2000 ? localStorage.maxFileSizeAdvanced : localStorage.maxFileSizeNormal;
-    }
-    var cancelRequest = fileLength > fileMax;
-    //console.log(details.type, details.url, fileLength /1000);
-    if (cancelRequest) {
-        details.exacType = fileType;
-        //console.log(details)
-        sendAborted(details, 'big');
-    }
-    return { cancel: cancelRequest };
-}
-/* cache part */
-chrome.webRequest.onHeadersReceived.addListener(function (obj) {
-    //console.log(obj);
-    var sizeCheck = sizeCheckCallback(obj);
-    if (sizeCheck.cancel) {
-        return sizeCheck;
-    }
-    var headers = obj.responseHeaders, cont = false;
-    for (var i = 0; i < headers.length && !cont; i = i + 1) {
-        var flag = headers[i].name.toLowerCase();
-        if (flag === 'cache-control') {
-            if (0) {
-                headers.splice(i, 1);
-            }
-            else {
-                cont = true;
-            }
-            break;
-        }
-    }
-    if (!cont) {
-        headers.push({
-            name: 'cache-control',
-            value: 'private, max-age=' + localStorage.cache
-        });
-    }
-    return {
-        responseHeaders: headers
-    };
-}, {
-    urls: ['<all_urls>']
-}, ['blocking', 'responseHeaders']);
 /* cache part end */
 /* boooost part */
 var checkers = [hash_check_1.check, reg_check_1.regCheck, msvpCheck_1.check];
@@ -428,22 +191,27 @@ chrome.tabs.onUpdated.addListener(function (tabId, change, tab) {
     // tab object is IMMUTABLE, surprise surprise!
     // So, we need to add new listeners for a tab with a new URL...
     if (change.status === 'loading' && (change.url || !tabListeners[tabId])) {
-        if (tabListeners[tabId]) {
-            chrome.webRequest.onBeforeRequest.removeListener(tabListeners[tabId]);
+        if('undefined' != typeof chrome.webRequest){
+            if (tabListeners[tabId]) {
+                chrome.webRequest.onBeforeRequest.removeListener(tabListeners[tabId]);
+            }
+            tabListeners[tabId] = checkUrl(tab);
+            console.log('tabListeners', tabListeners);
+            return chrome.webRequest.onBeforeRequest.addListener(tabListeners[tabId], {
+                urls: ['http://*/*', 'https://*/*'],
+                tabId: tab.id
+            }, ["blocking"]);
+            
         }
-        tabListeners[tabId] = checkUrl(tab);
-        console.log('tabListeners', tabListeners);
-        return chrome.webRequest.onBeforeRequest.addListener(tabListeners[tabId], {
-            urls: ['http://*/*', 'https://*/*', 'chrome-extension://*/*'],
-            tabId: tab.id
-        }, ["blocking"]);
     }
 });
 // cleanup all those listeners
 chrome.tabs.onRemoved.addListener(function (tabId, removeObj) {
-    chrome.webRequest.onBeforeRequest.removeListener(tabListeners[tabId]);
-    tabListeners[tabId] = null;
-    delete (tabListeners[tabId]);
+    if('undefined' != typeof chrome.webRequest){   
+        chrome.webRequest.onBeforeRequest.removeListener(tabListeners[tabId]);
+        tabListeners[tabId] = null;
+        delete (tabListeners[tabId]);
+    }
 });
 var checkUrl = function (tab) {
     // tab object is immutable
