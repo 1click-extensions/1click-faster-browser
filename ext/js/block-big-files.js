@@ -37,13 +37,16 @@ parseURL = function (url) {
     result.library = parsedLibrary[parsedLibrary.length-1];
     return result;
 };
-if (!localStorage.getItem('globalThrottleLevel')) {
-
+function restartSettings(){
     localStorage.setItem('maxFileSizeNormal', localStorage.getItem('maxFileSizeNormal') ?localStorage.getItem('maxFileSizeNormal') : 30 * 1000);
-    localStorage.setItem('maxFileSizeAdvanced', localStorage.getItem('maxFileSizeAdvanced') ?localStorage.getItem('maxFileSizeAdvanced') : 50 * 1000);
+    localStorage.setItem('maxFileSizeAdvanced', localStorage.getItem('maxFileSizeAdvanced') ?localStorage.getItem('maxFileSizeAdvanced') : 450 * 1000);
     localStorage.setItem('cacheNormal', localStorage.getItem('cacheNormal') ?localStorage.getItem('cacheNormal') : 240 * 1000);
     localStorage.setItem('cacheAdvanced', localStorage.getItem('cacheAdvanced') ?localStorage.getItem('cacheAdvanced') : 480 * 1000);
     localStorage.setItem('globalThrottleLevel',1000);
+}
+if (!localStorage.getItem('globalThrottleLevel')) {
+    restartSettings();
+    
 }
 var neededPerm = {permissions: ["tabs","webRequest","webRequestBlocking"],origins:["<all_urls>"]};
 chrome.permissions.contains(neededPerm,function(status){

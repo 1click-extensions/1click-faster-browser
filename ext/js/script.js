@@ -114,7 +114,7 @@ if('undefined' == typeof fasterTool){
             fasterTool.startTimeout();
 
         },
-        startTimeout(){
+        startTimeout : function(){
             clearTimeout(fasterTool.lazyImagesTimeout);
             fasterTool.lazyImagesTimeout = setTimeout(fasterTool.lazyTimeoutCallback, 500);
         },
@@ -136,6 +136,9 @@ if('undefined' == typeof fasterTool){
             fasterTool.lozad.observe('.lozad');
 
         },
+        // addUrlToAllowed : function(url, callback){
+        //     chrome.runtime.sendMessage({action: "addUrlToAllowed", url:url}, callback);
+        // },
         markImgAsCanceled :function(url){
             var images = document.querySelectorAll('img[src]');
             var found = false;
@@ -188,7 +191,7 @@ if('undefined' == typeof fasterTool){
                         }
                         if(sty['background-image'] && sty['background-image'].indexOf(url) > -1){
                             //console.log('in!!!!!!!!!!!!!!!!' ,xDom,sty['background-image'],url,  sty['background-image'].indexOf(url));
-                            if(['button','a', 'input'].indexOf(type) > -1){
+                            if(['button','a', 'input'].indexOf(type) > -1 || 0 === level){
                                 xDom.style['background-image'] = "url('" + url + "?oneClickFasterAllowBig=1')";
                             }
                             else{

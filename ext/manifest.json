@@ -15,7 +15,8 @@
       },
     "web_accessible_resources": [
       "injectees/*",
-      "/images/image-placeholder.png"
+      "/images/image-placeholder.png",
+      "/images/video-placeholder.png"
       ],
     "browser_action":{
       "default_icon": "images/browseraction.png",
